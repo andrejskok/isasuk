@@ -1,0 +1,21 @@
+{% extends 'index.html' %}
+{% load keyvalue %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+    {{ proposal.name }}
+    <form method='POST' action='/negotiation/report/{{ proposal.id }}'>
+      {% csrf_token %}
+      <h3>Report material</h3>
+        <p>Reason for reporting</p>
+        <textarea name='reason' class='form-control'></textarea>
+      <button type='submit' name='report' class='btn btn-success'>Report</button>
+    </form>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}

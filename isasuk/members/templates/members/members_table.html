@@ -1,0 +1,80 @@
+<div>
+    <div>
+    {% if data %}
+      <table class="table">
+        <thead>
+          <tr>
+            <td>
+              Meno
+            </td>
+            <td>
+              Email
+            </td>
+            <td>
+              Mandát od
+            </td>
+            <td>
+              Mandát do
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+      {% for member in data %}
+          <tr>
+            <td>
+             {{member.first_name}} {{member.last_name}}
+            </td>
+            <td>
+              {{member.username}}
+            </td>
+            <td>
+              {{member.details.start}}
+            </td>
+            <td>
+              {{member.details.end}}
+            </td>
+            {% if user.details.role == 'admin' %}
+            <td>
+              {% if member.id != user.id %}
+              <form method='POST' action='{% url "members" %}'>
+                  {% csrf_token %}
+                  <input type="hidden" name="id" value="{{ member.id }}">
+                  <button type='submit' class='btn btn-danger' name='remove'>Vymazať</button>
+              </form>
+              {% endif %}
+            </td>
+            <td>
+                <button class='btn edit' name='edit'>Upraviť</button>
+            </td>
+            {% endif %}
+          </tr>
+          {% if user.details.role == 'admin' %}
+          <tr style="display:none">
+            <td>
+            Práva
+            </td>
+            <td>
+              <form method='POST' action='{% url "members" %}'>
+                  {% csrf_token %}
+                  <input type="hidden" name="id" value="{{ member.id }}">
+                  Is member<input type="checkbox" name="is_member" 
+                  {% if member.details.is_member %} checked {% endif %}>
+                  Is student<input type="checkbox" name="is_student"
+                  {% if member.details.is_student %} checked {% endif %}>
+                  Can submit<input type="checkbox" name="can_submit"
+                  {% if member.details.can_submit %} checked {% endif %}>
+                  Is chair<input type="checkbox" name="is_chair"
+                  {% if member.details.is_chair %} checked {% endif %}>
+                  <button type='submit' class='btn btn-danger' name='save_edit' value='save_edit'>Uložiť</button>
+              </form>
+            </td>
+          </tr>
+          {% endif %}
+      {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>Akademický senát nemá v súčasnosti žiadnych členov.</p>
+    {% endif %}
+    </div>
+</div>

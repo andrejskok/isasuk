@@ -1,0 +1,25 @@
+{% extends 'index.html' %}
+{% load staticfiles %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
+<script src="{% static 'js/moment.min.js' %}"></script>
+<script src="{% static 'js/fullcalendar.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('#calendar_container').fullCalendar({
+      events: '/calendar/events',
+    })
+});
+</script>
+<div id='calendar_container'>
+</div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}

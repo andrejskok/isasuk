@@ -1,0 +1,59 @@
+{% extends 'index.html' %}
+
+
+{% block navigation %}
+		{% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<div>
+		<div>
+		<h1>Dokumenty na pripomienkovanie</h1>
+    {% if files %}
+      <table class="table">
+        <thead>
+          <tr>
+            <td>
+              Dokument
+            </td>
+            <td>
+              Autor
+            </td>
+            <td>
+              Datum vytvorenia
+            </td>
+            <td>
+              Popis
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+      {% for file in files %}
+          <tr>
+            <td>
+             <a href='{{ file.id }}'>{{ file.name }}</a>
+            </td>
+            <td>
+              {{ file.creator }}
+            </td>
+            <td>
+              {{ file.timestamp }}
+            </td>
+            <td>
+              {{ file.details }}
+            </td>
+          </tr>
+      {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>Žiadne dokumenty na pripomienkovanie.</p>
+    {% endif %}
+		</div>
+
+</div>
+{% endblock %}
+
+{% block footer %}
+		{% include 'footer.html' %}
+{% endblock %}

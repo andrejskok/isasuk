@@ -1,0 +1,38 @@
+{% extends 'members/main.html' %}
+{% load bootstrap %}
+{% load staticfiles %}
+
+
+{% block data %}
+<div class='row'>
+    <div class='col-md-2'>
+      <form method='POST' action='{% url "members" %}'>
+        {% csrf_token %}
+        {{userform|bootstrap}}
+        <button type='submit' class='btn btn-success' name='add_user' value='add_user'>
+        Pridať používateľa</button>
+      </form>
+    </div>
+</div>
+<div class='row'>
+    {% if successfull_user_addition %}
+      <div class="alert alert-success">
+        Používateľ bol úspešne pridaný
+      </div>
+    {% endif %}
+    {% if successfull_user_removal %}
+      <div class="alert alert-success">
+        Používateľ bol úspešne vymazaný
+      </div>
+    {% endif %}
+    {% if successfull_user_edit %}
+      <div class="alert alert-success">
+        Používateľove práva boli upravené
+      </div>
+    {% endif %}
+</div>
+  {% include 'members/members_table.html'%}
+  <script src="{% static "js/members.js" %}"></script>
+</div>
+
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'index.html' %}
+{% load keyvalue %}
+{% load getfiletype %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+  {% if proposals %}
+    <table class="table">
+      <thead>
+        <tr>
+          <td>
+            Názov návrhu
+          </td>
+          <td>
+            Materiály
+          </td>
+          <td>
+          </td>
+        </tr>
+      </thead>
+      <tbody>
+    {% for proposal in proposals %}
+      <tr>
+        <td>
+        {{ proposal.name }}
+        </td>
+        <td>
+        {% for f in files|keyvalue:proposal.id %}
+          {{ f.file_type|getfiletype }}
+         <a href='/{{ f.path }}/{{f.name}}'>{{ f.name }}</a><br>
+        {% endfor %}
+        </td>
+        <td>
+        <form method='POST' action='{% url "negotiation" %}'>
+          {% csrf_token %}
+          <button type='submit' value='{{proposal.id}}' name='assign' class='btn btn-success'>Prideliť</button>
+        </form>
+        <form method='POST' action='{% url "negotiation" %}'>
+          {% csrf_token %}
+          <button type='submit' value='{{proposal.id}}' name='report' class='btn btn-danger'>Zrušiť</button>
+        </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>V súčasnosti nemáte žiadne návrhy.</p>
+  {% endif %}
+  
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}
+

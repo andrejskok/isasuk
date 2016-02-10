@@ -1,0 +1,78 @@
+{% extends 'index.html' %}
+{% load bootstrap %}
+{% load getgroupname %}
+
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<div class='row'>
+  {% if leader or group %}
+    <div class='col-md-4'>
+      <ul class="nav nav-pills nav-stacked">
+      {% if leader %}
+        <h4>Predseda</h4>
+        {% for group in leader %}
+          <li role="presentation"
+           {% if group.group_name = name %}
+             class='active'
+           {% endif %}
+          ><a href="{% url 'negotiation' %}{{group.group_name}}">{{ group.group_name|getgroupname }}</a>
+          </li>
+        {% endfor %}
+      {% endif %}
+      
+      {% if groups %}
+        <h4>Člen</h4>
+        {% for group in groups %}
+          <li role="presentation"
+          {% if group.group_name = name %}
+            class='active'
+          {% endif %}
+          ><a href="{% url 'negotiation' %}{{group.group_name}}">{{ group.group_name|getgroupname }}</a></li>
+        {% endfor %}
+      {% endif %}
+      </ul>
+    </div>
+    <div class='col-md-8'>
+      {% if proposals %}
+        <div class="row">
+          <h3>Pridelené materiály</h3>
+        </div>
+        {% for id, proposal in proposals %}
+          <div class="row">
+          Návrh <a href="{% url 'negotiation' %}{{name}}/{{id}}">{{proposal.name}}</a><br><br>
+          {% if is_leader %}
+            <form method='POST' action='' enctype="multipart/form-data">
+              {% csrf_token %}
+              <input type="file" name="result">
+              <button type='submit' value='{{proposal.id}}' name='upload' class='btn btn-success'>Nahrať uznesenie</button>
+            </form>
+          {% endif %}
+          </div>
+         <hr>
+        {% endfor %}
+        <div class="row">
+          Po rokovaní nahrajte zápisnicu z rokovania, všetky matriály ktoré neboli označené, budú považované za Odporúčané schváliť a budú mať priloženú zápisnicu z rokovania. Zároveň sa tým uzavrie zasadnutie.
+          <form method='POST' action='{% url "negotiation" %}'>
+            {% csrf_token %}
+            <input type="file" name="zapisnica">
+            <button type='submit' value='{{group}}' name='upload' class='btn btn-success'>Nahrať zápisnicu</button>
+          </form>
+        </div>
+      {% else %}
+        Táto komisia nemá žiadne pridelené materiály
+      {% endif %}
+    </div>
+  {% else %}
+    Nie ste členom ani predsedom žiadnej komisie, takže nemôžete pripomienkovať dokumenty.
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}
+

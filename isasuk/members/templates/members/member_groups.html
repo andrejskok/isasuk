@@ -1,0 +1,91 @@
+{% extends 'members/main.html' %}
+{% load bootstrap %}
+
+{% block data %}
+<div class='row'>
+  <!-- MENU -->
+  <div class='col-md-2'>
+    <ul class="nav nav-pills nav-stacked">
+      {% for group, name in group_names %}
+        <li role="presentation"
+        {% if group_name = group %}
+          class='active'
+        {% endif %}
+        ><a href="{% url 'groups' %}{{ group}}/">{{ name }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <!-- END MENU -->
+  <div class='col-md-10'>
+    <h2>{{ display_name }}</h2>
+    <div class='col-md-10'>
+
+      <h3>Predseda komisie</h3>
+      {% if group_leader %}
+         <table class="table">
+          <thead>
+            <tr>
+              <td>
+                Meno
+              </td>
+              <td>
+                Email
+              </td>
+              <td>
+                Info
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td>
+             {{ group_leader.member.first_name }} {{ group_leader.member.last_name}}
+            </td>
+            <td>
+              {{ group_leader.member.email }}
+            </td>
+            </tr>
+          </tbody>
+        </table>
+      {% else %}
+        <p>Komisia nemá zvoleného predsedu</p>
+      {% endif %}
+
+
+    <h3>Členovia komisie</h3>
+    {% if group_members %}
+      <table class="table">
+        <thead>
+          <tr>
+            <td>
+              Meno
+            </td>
+            <td>
+              Email
+            </td>
+            <td>
+              Info
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+      {% for group in group_members %}
+          <tr>
+            <td>
+             {{ group.member.first_name }} {{ group.member.last_name}}
+            </td>
+            <td>
+              {{ gropu.member.email }}
+            </td>
+          </tr>
+      {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>Komisia nemá v súčasnosti žiadnych členov.</p>
+    {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

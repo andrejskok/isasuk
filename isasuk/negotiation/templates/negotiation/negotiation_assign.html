@@ -1,0 +1,30 @@
+{% extends 'index.html' %}
+{% load keyvalue %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+    Názov návrhu: {{ proposal.name }}
+    <form method='POST' action='/negotiation/assign/{{ proposal.id }}'>
+      {% csrf_token %}
+      <h3>Komisie</h3>
+      {% for id, name in comissions %}
+      <div class='col md-4'>
+        <input type="checkbox" name="comission" value="{{ id }}" > {{ name }}
+      </div>
+      {% endfor %}
+      <h3>Hlavná Komisia</h3>
+      <select name="gestor" class="form-control">
+        {% for id, name in comissions %}
+          <option type="checkbox" name="gestor" value="{{ id }}" >{{ name }}</option>
+        {% endfor %}
+      </select>
+      <button type='submit' name='assign' class='btn btn-success'>Prideliť</button>
+    </form>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}

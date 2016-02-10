@@ -1,0 +1,99 @@
+{% extends 'index.html' %}
+{% load getfiletype %}
+{% load getstate %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<div class='row'>
+    <div class='col-md-3'>
+        <h4>Najbližšie zasadnutia</h4>
+        <ul class="nav nav-pills nav-stacked">
+          {% for meeting in meetings %}
+            <li role="presentation"
+            {% if meeting.id.hex == id %}
+              class='active'
+            {% endif %}
+            ><a href="/home/{{ meeting.id.hex }}">
+              {{ meeting.title }}<br>
+              {{ meeting.date }}<br>
+              {{ meeting.group }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+    </div>
+    <div class='col-md-9'>
+      <div>
+        <h4>Dokumenty k zasadnutiu</h4>
+          {% for document in actual %}
+          <div class="row">
+            <div class="col-md-6">
+              <strong>{{ document.proposal.name }}</strong><br>
+              {{ document.proposal.creator.last_name }} {{ document.proposal.creator.first_name }}<br>
+            </div>
+            <div class="col-md-6">
+              {% for f in document.files %}
+                {{ f.file_type|getfiletype }}<br>
+                <a href='/viewer/{{document.proposal.id}}/{{f.id}}'>{{ f.name }}</a><br>
+              {% endfor %}
+            </div>
+          </div>
+          <hr>
+          {% empty %}
+            K tomuto zasadnutiu ešte niesú žiadne návrhy
+          {% endfor %}
+          
+      </div>
+        
+      <div>
+      <h4>Moje materiály</h4>
+         <div>
+             {% if documents %}
+               <table class="table">
+                 <thead>
+                   <tr>
+                     <td>
+                       Názov návrhu
+                     </td>
+                     <td>
+                       Materiály
+                     </td>
+                     <td>
+                       Stav
+                     </td>
+                   </tr>
+                 </thead>
+                 <tbody>
+               {% for proposal in documents %}
+                   <tr>
+                     <td>
+                      {{ proposal.proposal.name }}
+                     </td>
+                     <td>
+                      {% for f in proposal.files %}
+                        {{ f.file_type|getfiletype }}<br>
+                        <a href='/viewer/{{proposal.proposal.id}}/{{f.id}}'>{{ f.name }}</a><br>
+                      {% endfor %}
+                     </td>
+                     <td>
+                       {{ proposal.proposal.state|getstate }}
+                     </td>
+                   </tr>
+               {% endfor %}
+                 </tbody>
+               </table>
+             {% else %}
+               <p>V súčasnosti nemáte žiadne návrhy.</p>
+             {% endif %}
+             </div>
+      </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}

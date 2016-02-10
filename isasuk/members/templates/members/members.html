@@ -1,0 +1,11 @@
+{% extends 'members/main.html' %}
+{% load bootstrap %}
+
+{% block data %}
+<div>
+    <div class='row'>
+    {% include 'members/members_table.html'%}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'index.html' %}
+
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<div>
+    <div>
+    <h1>Dokumenty k najbližšiemu zasadnutiu</h1>
+
+        {{ documents }}
+
+    </div>
+      
+    <div>
+    <h1>Aktuálne dokumenty</h1>
+
+        {{ documents }}
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}

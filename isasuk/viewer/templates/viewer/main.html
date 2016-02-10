@@ -1,0 +1,43 @@
+{% extends 'index.html' %}
+{% load staticfiles %}
+{% load getfiletype %}
+
+{% block navigation %}
+		{% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-4">
+  <h3>Informácie o návrhu</h3>
+       <strong>{{ proposal.name }}</strong><br>
+       {{ proposal.creator.last_name }} {{ proposal.creator.first_name }}<br>
+       {{ proposal.timestamp }}<br><br>
+       <strong>Zoznam dokumentov</strong><br><br>
+
+       <ul class="nav nav-pills nav-stacked">
+        {% for f in files %}
+          <li role="presentation"
+          {% if f.id == file.id %}
+            class='active'
+          {% endif %}
+          >
+          {{f.file_type|getfiletype}}<br>
+          <a href='/viewer/{{proposal.id}}/{{f.id}}'>{{ f.name }}</a><br>
+         </li>
+         <hr>
+        {% endfor %}
+
+        </ul>
+  </div>
+  <div class="col-md-8">
+    <div style="height:700px;min-width:700px; postion:relative" class='col-md-12'>
+      {% include path %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+		{% include 'footer.html' %}
+{% endblock %}
