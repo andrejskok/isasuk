@@ -260,12 +260,12 @@ def handle_uploaded_file(request, f, file_id, file_type):
             destination.write(chunk)
     p1 = subprocess.Popen(
         ["powershell.exe",
-        "C:\\\"Program Files (x86)\\LibreOffice 4\"\\program\\soffice.exe --headless --convert-to pdf " + "isasuk\\static\\storage\\docs\\" + str(file_instance.id) + "\\" + f.name + " --outdir "  + "isasuk\\static\\storage\\docs\\" + str(file_instance.id)], stdout=sys.stdout)
+        "C:/\"Program Files (x86)/LibreOffice 4\"/program/soffice.exe --headless --convert-to pdf " + "isasuk/static/storage/docs/" + str(file_instance.id) + "/" + f.name + " --outdir "  + "isasuk/static/storage/docs/" + str(file_instance.id)], stdout=sys.stdout)
     p1.wait()
     time.sleep(1)
     p2 = subprocess.Popen(
         ["powershell.exe",
-        "D:\\Downloads\\pdf2html\\pdf2htmlEX.exe " + "isasuk\\static\\storage\\docs\\" + str(file_instance.id) + "\\" + ('.').join(f.name.split('.')[:-1]) + ".pdf" + " isasuk\\static\\storage\\docs\\" + str(file_instance.id) + "\\" + ('.').join(f.name.split('.')[:-1]) + ".html"], stdout=sys.stdout)
+        "D:/Downloads/pdf2html/pdf2htmlEX.exe " + "isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".pdf" + " isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".html"], stdout=sys.stdout)
     p2.wait()
     time.sleep(1)
     file_instance.save()

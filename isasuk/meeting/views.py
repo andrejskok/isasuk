@@ -151,10 +151,10 @@ def save_meeting_program(request):
 def move_program(document, meeting_id):
   tmp = open(document.file.name, 'rb')
   file = DjangoFile(tmp)
-  instance = File( file = file, proposal_id=meeting_id, file_type='program', name=file.name.split('\\')[-1])
+  instance = File( file = file, proposal_id=meeting_id, file_type='program', name=file.name.split('/')[-1])
   instance.save()
-  copyfile(file.name, 'isasuk/static/storage/docs/' + instance.id.hex + '/' + file.name.split('\\')[-1])
-  instance.file.name = 'isasuk/static/storage/docs/' + instance.id.hex + '/' + file.name.split('\\')[-1]
+  copyfile(file.name, 'isasuk/static/storage/docs/' + instance.id.hex + '/' + file.name.split('/')[-1])
+  instance.file.name = 'isasuk/static/storage/docs/' + instance.id.hex + '/' + file.name.split('/')[-1]
   instance.save()
   convert_file(instance)
   return instance
