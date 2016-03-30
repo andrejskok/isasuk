@@ -8,8 +8,11 @@ from isasuk.accounts.models import Details
 from isasuk.upload.models import File, Proposal
 from isasuk.members.models import Group, AdhocGroup
 from .forms import UserForm, AddUserForm
+from ..meeting.models import Meeting
+from .models import Attendance
 import pprint
 import mandrill
+from datetime import datetime
 mandrill_client = mandrill.Mandrill('vWEYy5TI1BFYISDBXOIJyA')
 
 group_names = [
@@ -45,7 +48,8 @@ def send_verification_email(id, email):
     mandrill_client.messages.send(message=message)
 
 def members_view(request):
-    members = User.objects.all()
+    display= "none"
+    members = User.objects.filter(details__is_active=True)
     if request.user.details.role == 'member':
         return render_to_response(
         'members/members.html',
@@ -67,6 +71,8 @@ def members_view(request):
                 send_verification_email(id, request.POST.get('email'))
                 successfull_user_addition = True
                 userform = UserForm()
+            else:
+              display = "block"
         print(request.POST)
         if 'remove' in request.POST:
               remove_user(request.POST.get('id'))
@@ -78,6 +84,7 @@ def members_view(request):
         'members/admin_members.html',
         {
           'members_active': 'active',
+          'display': display,
           'data': members,
           'userform': userform,
           'user': request.user,
@@ -190,6 +197,7 @@ def add_user(data):
         is_member = check_boolean_field(data, 'is_member'),
         can_submit = check_boolean_field(data, 'can_submit'),
         is_chair = check_boolean_field(data, 'is_chair'), 
+        is_active = True,
     )
     member.save()
     return user.id
@@ -210,7 +218,9 @@ def check_boolean_field(data, field):
     return True
 
 def remove_user(id):
-    User.objects.get(id=id).delete()
+    user =  User.objects.get(id=id)
+    user.details.is_active = False
+    user.details.save()
 
 def add_user_to_group(id, group):
     present = Group.objects.filter(group_name=group).filter(member=id)
@@ -237,3 +247,47 @@ def add_leader_to_group(id, group):
 
 def remove_leader_from_group(id, group):
     Group.objects.filter(group_name=group).get(member=id).delete()
+
+def attendance_view(request):
+  if 'select' in request.POST:
+    choice = request.POST.get('choice')
+    if choice is not 'none':
+      meetings = Meeting.objects.filter(group=choice, closed=True).order_by('date')
+      members_ids = Attendance.objects.filter(meeting__group=choice).values_list('user').distinct()
+      members = User.objects.filter(id__in=members_ids)
+      attendance = Attendance.objects.filter(meeting__group=choice)
+      matrix = [["" for meeting in meetings] for m in members]
+      totals = []
+      i = 0
+      for member in members:
+        j = 0
+        total = 0
+        for meeting in meetings:
+          result = Attendance.objects.filter(user=member, meeting=meeting).exclude(state="")
+          if len(result) == 0:
+            value = "Nemal mandát"
+          else:
+            value = result[0].state
+            if result[0].state == 'absent':
+              total +=1
+          matrix[i][j] = value
+          j+=1
+        totals.append(total)
+        i+=1
+      return render_to_response(
+            'members/attendance.html',
+            {
+              'choice': choice,
+              'comissions': group_names,
+              'meetings': meetings,
+              'members': members,
+              'table': matrix,
+              'totals': totals,
+            },
+            context_instance=RequestContext(request))
+  return render_to_response(
+        'members/attendance.html',
+        {
+          'comissions': group_names,
+        },
+        context_instance=RequestContext(request))

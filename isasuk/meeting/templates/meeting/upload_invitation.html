@@ -1,0 +1,37 @@
+{% extends 'index.html' %}
+{% load bootstrap %}
+{% load staticfiles %}
+{% load jfutags %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+    <div class='row'>
+      <div class='col-md-2'>
+      </div>
+      <div class='col-md-6'>
+        <h4>Nahrajte pozvánku k zasadnutiu</h4>
+        {% if invitation %}
+          Pozvánka k tomuto zasadnutiu existuje, nahraním ďalšej sa táto vymaže.
+        {% endif%}
+        {% jfu 'meeting/invitation_form.html' 'upload_invitation_file' meeting_id 'fileupload' '' %}
+        <form method="POST" aciton="">
+          {% csrf_token %}
+          <input type="hidden" name="id" value="{{meeting_id}}" />
+          {% if error %}
+            <div class="alert alert-danger">
+              Nie je možné uložiť zasadnutie a odoslať pozvánku, lebo žiadna nie je nahraná.
+            </div>
+          {% endif %}
+          <button type="submit" name="send" class='btn btn-success'>Odoslať</button>
+        </form>
+      </div>
+    </div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}
+

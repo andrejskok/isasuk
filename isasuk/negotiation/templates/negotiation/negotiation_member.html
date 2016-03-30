@@ -9,7 +9,7 @@
 
 {% block content %}
 <div class='row'>
-  {% if leader or group %}
+  {% if leader or groups %}
     <div class='col-md-4'>
       <ul class="nav nav-pills nav-stacked">
       {% if leader %}
@@ -43,7 +43,7 @@
         </div>
         {% for id, proposal in proposals %}
           <div class="row">
-          Návrh <a href="{% url 'negotiation' %}{{name}}/{{id}}">{{proposal.name}}</a><br><br>
+          Návrh <a href="{% url 'negotiation' %}{{name}}/{{id.hex}}">{{proposal.name}}</a><br><br>
           {% if is_leader %}
             <form method='POST' action='' enctype="multipart/form-data">
               {% csrf_token %}

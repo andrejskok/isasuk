@@ -1,6 +1,8 @@
 {% extends 'index.html' %}
 {% load keyvalue %}
 {% load getfiletype %}
+{% load getstate %}
+{% load getgroupname %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
@@ -15,36 +17,111 @@
             Názov návrhu
           </td>
           <td>
-            Materiály
+            Predkladateľ
+          </td>
+          <td>
+            Dátum predloženia
+          </td>
+          <td>
+            Stav
           </td>
           <td>
           </td>
         </tr>
       </thead>
       <tbody>
-    {% for proposal in proposals %}
+    {% for proposal in new %}
       <tr>
         <td>
-        {{ proposal.name }}
+            {{ proposal.name }}
         </td>
         <td>
-        {% for f in files|keyvalue:proposal.id %}
-          {{ f.file_type|getfiletype }}
-         <a href='/{{ f.path }}/{{f.name}}'>{{ f.name }}</a><br>
-        {% endfor %}
+            {{ proposal.creator.first_name }} {{ proposal.creator.last_name }}
         </td>
         <td>
-        <form method='POST' action='{% url "negotiation" %}'>
-          {% csrf_token %}
-          <button type='submit' value='{{proposal.id}}' name='assign' class='btn btn-success'>Prideliť</button>
-        </form>
-        <form method='POST' action='{% url "negotiation" %}'>
-          {% csrf_token %}
-          <button type='submit' value='{{proposal.id}}' name='report' class='btn btn-danger'>Zrušiť</button>
-        </form>
+            {{ proposal.timestamp }}
+        </td>
+        <td>
+            {{ proposal.state|getstate }}
+        </td>
+
+        <td>
+            <a class='btn btn-success' href='/viewer/{{ proposal.id.hex}}/'><i class="fa fa-search"></i></a>
+            <a class='btn btn-success' href='/upload/download/zip/{{ proposal.id.hex}}'><i class="fa fa-download"></i></a>
+        </td>
+        <td>
+        <div class='row'>
+          <div class='col-md-6'>
+              <form method='POST' action='{% url "negotiation" %}'>
+               {% csrf_token %}
+                <button type='submit' value='{{proposal.id.hex}}' name='assign' class='btn btn-success'>Prideliť</button>
+              </form>
+          </div>
+          <div class='col-md-6'>
+            <form method='POST' action='{% url "negotiation" %}'>
+              {% csrf_token %}
+              <button type='submit' value='{{proposal.id.hex}}' name='report' class='btn btn-danger'>
+                  Zamietnuť
+              </button>
+            </form>
+          </div>
+        </div>
         </td>
       </tr>
       {% endfor %}
+      {% for proposal in assigned %}
+        <tr>
+          <td>
+              {{ proposal.proposal.name }}
+          </td>
+          <td>
+              {{ proposal.proposal.creator.first_name }} {{ proposal.proposal.creator.last_name }}
+          </td>
+          <td>
+              {{ proposal.proposal.timestamp }}
+          </td>
+          <td>
+              {{proposal.proposal.state}}
+              {% if proposal.done_all %}
+                Prerokované vo všektých komisiách
+              {% else %}
+                Prerokované v komisiách:
+                {% for c in proposal.done %}
+                  {{ c|getgroupname}}
+                {% endfor %}
+                Zostáva prerokovať v:
+                {% for c in proposal.left %}
+                  {{ c|getgroupname}}
+                {% endfor %}
+              {% endif %}
+          </td>
+
+          <td>
+              <a class='btn btn-success' href='/viewer/{{ proposal.proposal.id.hex}}/'><i class="fa fa-search"></i></a>
+              <a class='btn btn-success' href='/upload/download/zip/{{ proposal.proposal.id.hex}}'><i class="fa fa-download"></i></a>
+          </td>
+          <td>
+          <div class='row'>
+            {% if proposal.done_all %}
+            <div class='col-md-6'>
+                <form method='POST' action='{% url "negotiation" %}'>
+                 {% csrf_token %}
+                  <button type='submit' value='{{proposal.proposal.id.hex}}' name='assign' class='btn btn-success'>Prideliť</button>
+                </form>
+            </div>
+            <div class='col-md-6'>
+              <form method='POST' action='{% url "negotiation" %}'>
+                {% csrf_token %}
+                <button type='submit' value='{{proposal.proposal.id.hex}}' name='report' class='btn btn-danger'>
+                    Zamietnuť
+                </button>
+              </form>
+            </div>
+            {% endif %}
+          </div>
+          </td>
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
   {% else %}

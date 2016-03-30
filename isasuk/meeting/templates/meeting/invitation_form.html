@@ -1,0 +1,19 @@
+{% extends 'jfu/upload_form.html' %}
+
+{% block JS_OPTS %}
+autoUpload: false,
+maxNumberOfFiles: 1,
+sequentialUploads: true,
+acceptFileTypes: /(\.|\/)(doc|html|docx?g)$/i
+{% endblock %}
+
+{% block FILE_INPUT %}
+<input type="hidden" name="type" value="invitation">
+<input 
+    type="file" name="files[]"
+
+    {% if accepted_mime_types %}
+        accept = '{{ accepted_mime_types|join:"," }}'
+    {% endif %}
+>
+{% endblock %}

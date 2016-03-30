@@ -14,6 +14,8 @@ def login_user(request):
         email = request.POST['email']
         password = request.POST['password']
         user = authenticate(username=email, password=password)
+        if user.details.is_active is False:
+            return None
         return user
     return None
 

@@ -3,6 +3,7 @@ from django import template
 register = template.Library()
 
 group_display = {
+  'asuk': 'Plénum AS UK',
   'predsednictvo': 'Predsedníctvo AS UK',
   'financna': 'Finančná komisia',
   'pedagogicka': 'Pedagogická komisia',

@@ -1,27 +1,68 @@
 {% extends 'index.html' %}
 {% load keyvalue %}
+{% load getfilename %}
+{% load getextension %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
 {% endblock%}
 
 {% block content %}
-    Názov návrhu: {{ proposal.name }}
-    <form method='POST' action='/negotiation/assign/{{ proposal.id }}'>
-      {% csrf_token %}
-      <h3>Komisie</h3>
-      {% for id, name in comissions %}
-      <div class='col md-4'>
-        <input type="checkbox" name="comission" value="{{ id }}" > {{ name }}
+    <form method='POST' action='/negotiation/assign/{{ proposal.id.hex }}'>
+    {% csrf_token %}
+      <div class='col-md-7 col-md-offset-2'>
+      <h3>Názov</h3>
+      <input type='text' name='title' value='{{ proposal.name }}' class="form-control"/>
       </div>
-      {% endfor %}
+      {% if files.proposal %}
+      <div class='col-md-7 col-md-offset-2'>
+        <h3>Návrh</h3>
+        <input type='text' name='{{  files.proposal.id.hex }}' value='{{ files.proposal.name|getfilename }}' class="form-control"/>
+        .{{ files.proposal.name|getextension }}
+      </div>
+      {% endif %}
+      {% if files.own_material %}
+      <div class='col-md-7 col-md-offset-2'>
+        <h3>Vlastný materiál</h3>
+        <input type='text' name='{{ files.own_material.id.hex }}' value='{{ files.own_material.name|getfilename }}' class="form-control"/>
+        .{{ files.own_material.name|getextension }}
+      </div>
+      {% endif %}
+      {% if files.docs %}
+      <div class='col-md-7 col-md-offset-2'>
+          <h3>Sprievodné dokumenty</h3>
+          {% for f in files.docs %}
+            <input type='text' name='{{ f.id.hex }}' value='{{ f.name|getfilename }}' class="form-control"/>
+            .{{ f.name|getextension }}
+          {% endfor %}
+      </div>
+      {% endif %}
+      {% if files.attachment %}
+      <div class='col-md-7 col-md-offset-2'>
+          <h3>Prílohy</h3>
+          {% for f in files.attachment %}
+            <input type='text' name='{{ f.id.hex }}' value='{{ f.name|getfilename }}' class="form-control"/>
+            .{{ f.name|getextension }}
+          {% endfor %}
+      </div>
+      {% endif %}
+      <div class='col-md-7 col-md-offset-2'>
+        <h3>Komisie</h3>
+        {% for id, name in comissions %}
+          <input type="checkbox" name="comission" value="{{ id }}" > {{ name }}<br>
+        {% endfor %}
+      </div>
+      <div class='col-md-7 col-md-offset-2'>
       <h3>Hlavná Komisia</h3>
       <select name="gestor" class="form-control">
         {% for id, name in comissions %}
           <option type="checkbox" name="gestor" value="{{ id }}" >{{ name }}</option>
         {% endfor %}
       </select>
-      <button type='submit' name='assign' class='btn btn-success'>Prideliť</button>
+      </div>
+      <div style='padding-top:15px' class='col-md-7 col-md-offset-3'>
+          <button type='submit' name='assign' class='btn btn-success'>Uložiť a prideliť</button>
+      </div>
     </form>
 {% endblock %}
 

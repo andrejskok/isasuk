@@ -81,7 +81,7 @@
       <h3>Informácie o návrhu</h3>
        {% for obj in files %}
         {{obj.file.file_type|getfiletype}} {{ obj.objections_count}}<br>
-        <a href='/negotiation/{{group_name}}/{{proposal.id}}/{{obj.file.id}}'>{{ obj.file.name }}</a><br>
+        <a href='/negotiation/{{group_name}}/{{proposal.id.hex}}/{{obj.file.id.hex}}'>{{ obj.file.name }}</a><br>
        {% endfor %}
        {% if user == proposal.creator %}
         <h3>Nahrať revíziu</h3>
@@ -97,7 +97,7 @@
         <h3>Prehľad histórie</h3>
         {% for file in archive %}
           {{ file.timestamp }}<br>
-          <a href='/archive/{{ file.id }}'>{{ file.name }}</a><br>
+          <a href='/archive/{{ file.id.hex }}'>{{ file.name }}</a><br>
         {% endfor %}
        {% endif %}
     </div>

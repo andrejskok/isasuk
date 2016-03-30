@@ -7,10 +7,13 @@ from django.core.urlresolvers import reverse
 from isasuk.members.models import Group
 from isasuk.upload.models import Proposal, File
 from .models import Assignement, Objection, Report, Archive
+from ..meeting.models import MeetingsToMaterials
+from ..common.helpers import get_proposal_files, rename_and_save
 
 import os, sys, subprocess, time
 
 group_names = [
+  ('asuk', 'Plénum AS UK'),
   ('predsednictvo', 'Predsedníctvo AS UK'),
   ('financna','Finančná komisia'),
   ('pedagogicka', 'Pedagogická komisia'),
@@ -31,28 +34,45 @@ def negotiation_view(request):
       id = request.POST.get('report')
       url = '/negotiation/report/' + id
       return redirect(url)
-    proposals = Proposal.objects.filter(state='new')
+    proposals = Proposal.objects.filter(state__in=['new', 'assigned', 'approved_comission'])
     files = {}
+    new = []
+    assigned = []
     for proposal in proposals:
-      files[proposal.id] = File.objects.filter(proposal_id=proposal.id)
+      if proposal.state == 'new':
+        new.append(proposal)
+      else:
+        commissions_left = Assignement.objects.filter(proposal_id=proposal.id.hex).values_list('group_name', flat=True)
+        commissions_done = MeetingsToMaterials.objects.filter(proposal=proposal, meeting__closed=True).values_list('meeting__group', flat=True)
+        assigned.append({
+          'proposal': proposal,
+          'left': commissions_left,
+          'done': commissions_done,
+          'done_all': len(commissions_left) == 0,
+        })
     return render_to_response(
       'negotiation/negotiation.html',
       {
         'proposals': proposals,
+        'new': new,
+        'assigned': assigned,
         'files': files,
       },
       context_instance=RequestContext(request)
     )
   elif request.user.details.role == 'member':
     leader = Group.objects.filter(member=request.user, is_chair=True)
+    print(leader)
     if len(leader) != 0:
       return redirect(reverse('negotiation')+ leader[0].group_name)
     groups = Group.objects.filter(member=request.user, is_chair=False)
+    print(groups)
     if len(groups) != 0:
       return redirect(reverse('negotiation')+ groups[0].group_name)
     return render_to_response(
       'negotiation/negotiation_member.html',
-      {},
+      {
+      },
       context_instance=RequestContext(request)
     )
 
@@ -62,9 +82,7 @@ def negotiation_group_view(request, group):
       proposal_id = request.POST.get('upload')
       assignement = Assignement.objects.get(proposal_id=proposal_id, main_group=group)
       if assignement.group_name != 'predsednictvo':
-        print(request.FILES.get('result'), proposal_id)
         file_id= handle_uploaded_file(request, request.FILES.get('result'), proposal_id, 'commission_result')
-        print(file_id)
         assignement.group_name = 'predsednictvo'
         assignement.main_group = 'predsednictvo'
         assignement.save()
@@ -98,9 +116,19 @@ def assign_view(request, id):
   if request.user.details.role != 'admin':
     return None
   proposal = Proposal.objects.get(id=id)
+  files = get_proposal_files(id)
   if 'assign' in request.POST:
     proposal.state = 'assigned'
     proposal.save()
+    if files['proposal']:
+        name = request.POST.get(files['proposal'].id.hex)
+        rename_and_save(files['proposal'], name)
+    if files['own_material']:
+        name = request.POST.get(files['own_material'].id.hex)
+        rename_and_save(files['own_material'], name)
+    for file in files['attachment']:
+        name = request.POST.get(file.id.hex)
+        rename_and_save(file, name)
     groups = request.POST.getlist('comission')
     main_group = request.POST.get('gestor')
     for group in groups:
@@ -118,6 +146,7 @@ def assign_view(request, id):
       'negotiation/negotiation_assign.html',
       {
       'proposal': proposal,
+      'files': files,
       'comissions': group_names,
       },
       context_instance=RequestContext(request)
@@ -181,7 +210,7 @@ def objections_view(request, group, proposal_id, file_id):
       return render_to_response(
         'negotiation/objections.html',
         {
-          'path': str(main_file.id) + "/" + ('.').join(main_file.name.split('.')[:-1]) + ".html",
+          'path': main_file.id.hex + "/" + ('.').join(main_file.name.split('.')[:-1]) + ".html",
           'archive': archive,
           'request': request,
           'user': str(request.user.id),

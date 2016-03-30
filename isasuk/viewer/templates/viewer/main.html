@@ -1,6 +1,7 @@
 {% extends 'index.html' %}
 {% load staticfiles %}
 {% load getfiletype %}
+{% load getgroupname %}
 
 {% block navigation %}
 		{% include 'navigation.html' %}
@@ -9,31 +10,65 @@
 {% block content %}
 <div class="row">
   <div class="col-md-4">
-  <h3>Informácie o návrhu</h3>
-       <strong>{{ proposal.name }}</strong><br>
-       {{ proposal.creator.last_name }} {{ proposal.creator.first_name }}<br>
-       {{ proposal.timestamp }}<br><br>
-       <strong>Zoznam dokumentov</strong><br><br>
-
+  <h4>Informácie o návrhu:</h4>
+       <h4>{{ proposal.name }}</h4>
+       <h5>{{ proposal.creator.last_name }} {{ proposal.creator.first_name }}</h5>
+       <h5>{{ proposal.timestamp }}</h5>
+       <a class='btn' href='/upload/download/zip/{{proposal.id.hex}}'><i class="fa fa-download"></i> *.zip</a>
+       <br><br>
+       <h4>Zoznam dokumentov</h4>
        <ul class="nav nav-pills nav-stacked">
-        {% for f in files %}
-          <li role="presentation"
-          {% if f.id == file.id %}
-            class='active'
+        <div class="">
+           {% if files.proposal %}
+            <strong>{{ files.proposal.file_type|getfiletype }}</strong><br>
+            <a class='btn' href='/upload/download/pdf/{{files.proposal.id.hex}}'><i class="fa fa-download"></i> *.pdf</a>
+            <a class='btn' href='/upload/download/original/{{files.proposal.id.hex}}'><i class="fa fa-download"></i> Originál</a>
+            <a href='/viewer/{{proposal.id.hex}}/{{files.proposal.id.hex}}'>{{ files.proposal.name }}</a><br>
           {% endif %}
-          >
-          {{f.file_type|getfiletype}}<br>
-          <a href='/viewer/{{proposal.id}}/{{f.id}}'>{{ f.name }}</a><br>
-         </li>
-         <hr>
-        {% endfor %}
-
+          {% if files.own_material %}
+            <strong>{{ files.own_material.file_type|getfiletype }}</strong><br>
+            <a class='btn' href='/upload/download/pdf/{{files.own_material.id.hex}}'><i class="fa fa-download"></i> *.pdf</a>
+            <a class='btn' href='/upload/download/original/{{files.own_material.id.hex}}'><i class="fa fa-download"></i> Originál</a>
+            <a href='/viewer/{{proposal.id.hex}}/{{files.own_material.id.hex}}'>{{ files.own_material.name }}</a><br>
+          {% endif %}
+          {% if files.docs %}
+            <strong>{{ files.docs.0.file_type|getfiletype }}</strong><br>
+            {% for f in files.docs %}
+              <a class='btn' href='/upload/download/pdf/{{f.id.hex}}'><i class="fa fa-download"></i> *.pdf</a>
+              <a class='btn' href='/upload/download/original/{{f.id.hex}}'><i class="fa fa-download"></i> Originál</a>
+              <a href='/viewer/{{proposal.id.hex}}/{{f.id.hex}}'>{{ f.name }}</a><br>
+            {% endfor %}
+          {% endif %}
+          {% if files.attachment %}
+            <strong>{{ files.attachment.0.file_type|getfiletype }}</strong><br>
+            {% for f in files.attachment %}
+              <a class='btn' href='/upload/download/pdf/{{f.id.hex}}'><i class="fa fa-download"></i> *.pdf</a>
+              <a class='btn' href='/upload/download/original/{{f.id.hex}}'><i class="fa fa-download"></i> Originál</a>
+              <a href='/viewer/{{proposal.id.hex}}/{{f.id.hex}}'>{{ f.name }}</a><br>
+            {% endfor %}
+          {% endif %}
+        </div>
         </ul>
+         <h4>Vyjadrenia komisií</h4>
+         <ul class="nav nav-pills nav-stacked">
+          <div class="">
+             {% if conclusions %}
+              {% for conclusion in conclusions %}
+                {% if conclusion.conclusion %}
+                  <strong>{{ conclusion.meeting.group|getgroupname }}</strong><br>
+                  <a class='btn' href='/upload/download/pdf/{{conclusion.conclusion.id.hex}}'><i class="fa fa-download"></i> *.pdf</a>
+                  <a class='btn' href='/upload/download/original/{{conclusion.conclusion.id.hex}}'><i class="fa fa-download"></i> Originál</a>
+                  <a href='/viewer/{{conclusion.proposal.id.hex}}/{{conclusion.conclusion.id.hex}}'>Uznesenie</a><br>
+                {% else %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          </div>
+          </ul>
   </div>
   <div class="col-md-8">
-    <div style="height:700px;min-width:700px; postion:relative" class='col-md-12'>
-      {% include path %}
-    </div>
+    <iframe src='/viewer/view/{{ file.id.hex }}' style="height:700px;width:700px" scrolling="no">
+    </iframe>
   </div>
 </div>
 {% endblock %}

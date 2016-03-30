@@ -39,6 +39,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'bootstrapform',
+    'jfu',
+    'webodt',
 
     'isasuk',
     'isasuk.accounts',
@@ -86,6 +88,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media',
+                'django.core.context_processors.request',
+                'django.core.context_processors.static',
             ],
         },
     },
@@ -125,3 +130,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+
+WEBODT_CONVERTER = 'webodt.converters.abiword.AbiwordODFConverter'
+
+WEBODT_TEMPLATE_PATH = BASE_DIR + '/isasuk/templates'
+
+WEBODT_TMP_DIR = BASE_DIR + '/isasuk/media/'

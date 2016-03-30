@@ -1,0 +1,129 @@
+{% extends 'index.html' %}
+{% load bootstrap %}
+{% load staticfiles %}
+{% load jfutags %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<div class='row'>
+    <h3>Uznesenia k materiálom</h3>
+    {% if proposals %}
+        <table class='table'>
+            <thead>
+                <td class='col-md-3'>
+                    Materiál
+                </td>
+                <td class='col-md-3'>
+                    Uznesenie
+                </td>
+                <td>
+                    
+                </td>
+
+            </thead>
+            <tbody>
+        {% for proposal in proposals %}
+            <tr>
+                <td>
+                    <a class='btn btn-success' href='/viewer/{{proposal.proposal.id.hex}}/'><i class="fa fa-search"></i></a>
+                    {{ proposal.proposal.name }}
+                </td>
+                <td class="{{ proposal.id.hex }}">
+                    {% if proposal.conclusion %}
+                    <a target='_blank' href='/viewer/file/{{ proposal.conclusion.id.hex }}'>
+                        Uznesenie
+                    </a>
+                    {% else %}
+                        Ešte nie je nahraté
+                    {% endif %}
+                </td>
+                <td>
+                    <div class='row'>
+                    <button class='btn btn-success add_conclusion'>Pridať uznesenie</button>
+                    </div>
+                    <div class='row' style='display:none;padding-left:15px;'>
+                        {% jfu 'meeting/conclusion_form.html' 'upload_conclusion_to_material' proposal.id.hex proposal.id.hex '' %}
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        Neexistujú žiadne materiály
+    {% endif %}
+</div>
+<div class='row'>
+    <h3>Nahrajte zápisnicu</h3>
+    <div class="alert alert-info">
+        Zápisnica bude automaticky pridaná k materiálom, ktoré nemajú pridané uznesenie.
+    </div>
+    {% if meeting.conclusion %}
+    <div class='row' style='padding-left:15px;'>
+        Už je jedna zápisnica nahratá. Nahratí ďalšej sa táto premaže
+        <a target='_blank' href='/viewer/file/{{ meeting.conclusion.id.hex }}'>
+            Existujúca zápisnica
+        </a>
+    </div>
+    {% endif %}
+    <div style='padding-left:15px;'>
+    {% jfu 'meeting/conclusion_form.html' 'upload_conclusion_file' meeting.id.hex 'fileupload' '' %}
+    </div>
+</div>
+<form action='' method='POST'>
+    {% csrf_token %}
+    <div class='row'>
+        <h3>Dochádzka</h3>
+        {% if attendance %}
+            <table class='table'>
+                <thead>
+                    <td class='col-md-3'>
+                        Meno
+                    </td>
+                    <td>
+                    </td>
+                </thead>
+                <tbody>
+            {% for atendee in attendance %}
+                <tr>
+                    <td>
+                        {{ atendee.user.last_name }} {{ atendee.user.first_name }}
+                    </td>
+                    <td>
+                       <input type="radio" name="{{ atendee.id.hex }}" value="present" {% if atendee.state == "present" %} checked {% endif%}> Prítomný
+                       <input type="radio" name="{{ atendee.id.hex }}" value="excused" {% if atendee.state == "excused" %} checked {% endif%}> Ospravedlnený
+                       <input type="radio" name="{{ atendee.id.hex }}" value="absent" {% if atendee.state == "absent" %} checked {% endif%}> Neprítomný
+                    </td>
+                </tr>
+            {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+    <div class='row'>
+        {% if no_conclusion %}
+            <div class="alert alert-danger">
+                Nie je možné uzavrieť zasadnutie bez zápisnice.
+            </div>
+        {% endif %}
+        {% if saved %}
+            <div class="alert alert-success">
+                Úspešne uložené.
+            </div>
+        {% endif %}
+    </div>
+    <div class='row'>
+        <button type='submit' class='btn btn-success pull-right' name='close' value='close'>Uzavrieť</button>
+        <button type='submit' class='btn btn-success pull-right' name='save' value='save'>Uložiť</button>
+    </div>
+</form>
+<script src="{% static "js/close_meeting.js" %}"></script>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}
+

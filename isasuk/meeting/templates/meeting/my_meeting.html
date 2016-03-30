@@ -1,0 +1,80 @@
+{% extends 'index.html' %}
+{% load bootstrap %}
+{% load staticfiles %}
+{% load getgroupname %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+  {% if success_delete %}
+    <div class="alert alert-success">
+      Zadanutie bolo úspešne vymazané
+    </div>
+  {% endif %}
+  {% if is_leader %}
+  <a class='btn btn-success' href="{% url 'add_meeting' %}"><i class="fa fa-plus"></i> Nové zasadnutie</a>
+  {% endif %}
+  {% if meetings_leader or meetings_member%}
+      <table class="table">
+        <thead>
+          <tr>
+            <td>
+              Názov zasadnutia
+            </td>
+            <td>
+              Komisia
+            </td>
+            <td>
+              Dátum a čas
+            </td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+      {% for meeting in meetings_leader %}
+        <tr>
+        <td><a href='/meeting/meeting/{{ meeting.id.hex }}'>{{ meeting.title }}</a></td>
+        <td>{{ meeting.group|getgroupname }}</td>
+        <td>{{ meeting.date }}</td>
+        <td>
+          <div class='row'>
+            <div class='col-md-3'>
+              <a class='btn btn-success' href='{% url "edit_meeting" id=meeting.id.hex %}'>Upraviť</a>
+            </div>
+            <div class='col-md-3'>
+              <a class='btn btn-success' href='{% url "close_meeting" id=meeting.id.hex %}'>Uzavrieť</a>
+            </div>
+            <div class='col-md-3'>
+            <form method="POST" action='{% url "my_meetings" %}'>
+              {% csrf_token %}
+              <input type="hidden" name="id" value={{meeting.id.hex}}>
+              <button type="submit" name="delete" class='btn btn-danger'>Vymazať</button>
+            </form>
+            </div>
+          </div>
+         </td>
+
+        </tr>
+      {% endfor %}
+      {% for meeting in meetings_member %}
+        <tr>
+        <td><a href='/meeting/{{ meeting.id.hex }}'>{{ meeting.title }}</a></td>
+        <td>{{ meeting.group|getgroupname }}</td>
+        <td>{{ meeting.date }}</td>
+        <td>
+        </td>
+        </tr>
+      {% endfor %}
+        </tbody>
+      </table>
+  {% else %}
+      <p>Nemáte naplánované žiadne zasadnutia</p>
+  {% endif %}
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}
+

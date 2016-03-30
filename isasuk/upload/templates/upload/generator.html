@@ -1,0 +1,54 @@
+{% extends 'index.html' %}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load jfutags %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<div class='row'>
+    <div class='col-md-offset-3 col-md-6'>
+        <h1>Generátor dokumentov</h1>
+        <p>
+        Tento nástroj slúži na generovanie dokumentov z vopred definovanej šablóny. Po vybratí šablóny bude nutné vyplniť povinné polia a systém Vám vygeneruje dokument s vyplnenými údajmi.
+        </p>
+        <form method='POST' action='{% url "generator" %}'>
+          {% csrf_token %}
+          <input type='hidden' name='proposal_id' value='{{ proposal_id }}' />
+          {{ patternform|bootstrap }}
+          <input type='submit' class="btn btn-default" name='pattern' value='Vybrať'/>
+        </form>
+
+        {% if templateform %}
+        <form method='POST' action='{% url "generator" %}'>
+          {% csrf_token %}
+          <input type='hidden' name='proposal_id' value='{{ proposal_id }}' />
+          <input type='hidden' name='select_pattern' value='{{ template_type }}' />
+          {{ templateform|bootstrap }}
+          <input type='submit' class="btn btn-success" name='template' value='Vygenerovať dokument'/>
+        </form>
+        {% endif %}
+      {% if link %}
+        <div class='row'>
+          <a href='/upload/download/{{ link }}'><i class="fa fa-2x fa-download"></i></a>
+          <a target="_blank" href='/upload/show/{{ link }}'><i class="fa fa-2x fa-search"></i></a>
+        </div>
+        <div class='row'>
+        {% jfu 'upload/attachment_form.html' 'jfu_upload' proposal_id 'fileupload' 'Prílohy' %}
+        </div>
+        <form method='POST' action='{% url "generator" %}'>
+          {% csrf_token %}
+          <input type='hidden' name='proposal_id' value='{{ proposal_id }}' />
+          <input type='hidden' name='filename' value='{{ link }}' />
+          <button type="submit" name='save' class='btn btn-success'>Podať</button>
+        </form>
+      {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}

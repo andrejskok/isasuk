@@ -6,44 +6,30 @@
 {% endblock%}
 
 {% block content %}
-  {% if successfully_added %}
-    <div class="alert alert-success">
-      Zasadnutie bolo úspešne pridané
-    </div>
-  {% endif %}
+<div class='col-md-offset-3 col-md-6'>
   <form action='{% url "add_meeting" %}' method='POST'>
     {% csrf_token %}
     <div class="row">
-        <div class='col-sm-6'>
             <div class="form-group">
                 {{ form.title|bootstrap }}
             </div>
-        </div>
     </div>
     <div class="row">
-        <div class='col-sm-6'>
             <div class="form-group">
                 {{ form.date|bootstrap }}
             </div>
-        </div>
     </div>
     <div class="row">
-        <div class='col-sm-6'>
             <div class="form-group">
                 {{ form.choices|bootstrap }}
             </div>
-        </div>
     </div>
     <div class="row">
-        <div class='col-sm-6'>
-            <div class="form-group">
-                {{ form.invitation|bootstrap }}
-            </div>
-        </div>
-    </div>
-    <input type='submit' class='btn btn-success' name='add_meeting' value='Pridať zasadnutie'>
+        <input type='submit' class='btn btn-success' name='add_meeting' value='Uložiť a pokračovať k tvorbe programu'>
+     </div>
   </form>
   <script src="{% static "js/meetings.js" %}"></script>
+</div>
 {% endblock %}
 
 {% block footer %}

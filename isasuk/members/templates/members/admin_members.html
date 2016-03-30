@@ -5,13 +5,73 @@
 
 {% block data %}
 <div class='row'>
-    <div class='col-md-2'>
-      <form method='POST' action='{% url "members" %}'>
-        {% csrf_token %}
-        {{userform|bootstrap}}
-        <button type='submit' class='btn btn-success' name='add_user' value='add_user'>
-        Pridať používateľa</button>
-      </form>
+    <div class='col-md-12'>
+      <button class='btn btn-success' id='add'>
+         <i class="fa fa-plus"></i> Pridať používateľa
+      </button>
+      <div id='add_form' style="display:{{display}}">
+          <form method='POST' action='{% url "members" %}'>
+            {% csrf_token %}
+            <div class="row">
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.first_name|bootstrap }}
+                    </div>
+                </div>
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.last_name|bootstrap }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.email|bootstrap }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.start|bootstrap }}
+                    </div>
+                </div>
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.end|bootstrap }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.is_student|bootstrap }}
+                    </div>
+                </div>
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.is_member|bootstrap }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.can_submit|bootstrap }}
+                    </div>
+                </div>
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.is_chair|bootstrap }}
+                    </div>
+                </div>
+            </div>
+            <button type='submit' class='btn btn-success' name='add_user' value='add_user'>
+                Uložiť používateľa
+             </button>
+          </form>
+      </div>
     </div>
 </div>
 <div class='row'>

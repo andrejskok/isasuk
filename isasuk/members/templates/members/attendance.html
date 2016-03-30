@@ -1,0 +1,76 @@
+{% extends 'index.html' %}
+{% load keyvalue %}
+{% load getfilename %}
+{% load getextension %}
+{% load getattendancestatus %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+    <form method='POST' action='/members/attendance/'>
+    {% csrf_token %}
+      <h3>Komisia</h3>
+      <select name="choice" class="form-control">
+         <option type="checkbox" name="choice" value="none" >---------</option>
+        {% for id, name in comissions %}
+          <option type="checkbox" name="choice" value="{{ id }}"
+          {% if id == choice %}
+            selected
+          {% endif %}
+          >{{ name }}</option>
+        {% endfor %}
+      </select>
+      <br>
+      <button type='submit' name='select' class='btn btn-success'>Vybrať</button>
+    </form>
+
+    <div class='row'>
+      <h3>Dochádzka</h3>
+      {% if meetings %}
+      <table class="table">
+        <thead>
+          <tr>
+            <td>
+              Meno
+            </td>
+            {% for meeting in meetings %}
+              <td>
+                {{meeting.date}}
+              </td>
+            {% endfor %}
+            <td>
+              Absencie
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+      {% for member in members %}
+          <tr>
+            <td>
+             {{member.first_name}} {{member.last_name}}
+            </td>
+            {% for row in table|lookup:forloop.counter %}
+              <td>
+              {% autoescape off %}
+              {{row|getattendancestatus}}
+              {% endautoescape %}
+              </td>
+            {% endfor %}
+            <td>
+              {{ totals |lookup:forloop.counter }}
+            </td>
+          </tr>
+      {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      Pre danú komisiu ešte neboli žiadne zasadnutia
+    {% endif %}
+    </div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}

@@ -10,3 +10,4 @@ class Details(models.Model):
     is_member = models.BooleanField()
     is_chair = models.BooleanField()
     can_submit = models.BooleanField()
+    is_active = models.BooleanField()

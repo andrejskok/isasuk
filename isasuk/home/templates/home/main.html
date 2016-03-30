@@ -1,6 +1,8 @@
 {% extends 'index.html' %}
 {% load getfiletype %}
 {% load getstate %}
+{% load getgroupname %}
+{% load timeformatters %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
@@ -16,10 +18,11 @@
             {% if meeting.id.hex == id %}
               class='active'
             {% endif %}
-            ><a href="/home/{{ meeting.id.hex }}">
-              {{ meeting.title }}<br>
-              {{ meeting.date }}<br>
-              {{ meeting.group }}
+            >
+              <a href="/home/{{ meeting.id.hex }}">
+                <h4>{{ meeting.title }}</h4>
+                <h5>{{ meeting.group|getgroupname }}</h5>
+                <h5>{{ meeting.date|getdate }}</h5>
               </a>
             </li>
           {% endfor %}
@@ -28,24 +31,54 @@
     <div class='col-md-9'>
       <div>
         <h4>Dokumenty k zasadnutiu</h4>
-          {% for document in actual %}
-          <div class="row">
-            <div class="col-md-6">
-              <strong>{{ document.proposal.name }}</strong><br>
-              {{ document.proposal.creator.last_name }} {{ document.proposal.creator.first_name }}<br>
+           <a target='_blank' href='/viewer/file/{{ selected_meeting.program.id.hex }}'>
+               Program
+           </a><br>
+           <a target='_blank' href='/viewer/file/{{ selected_meeting.invitation.id.hex }}'>
+               Pozvánka
+           </a>
+          <ol>
+          {% for document in meeting_materials %}
+            <li>
+             <div class="row">
+              <div class="col-md-5">
+                <strong>{{ document.proposal.name }}</strong><br>
+                {{ document.proposal.creator.last_name }} {{ document.proposal.creator.first_name }}<br>
+               {{ document.proposal.timestamp }} 
+              </div>
+              <div class="col-md-5">
+                 {% if document.files.proposal %}
+                  {{ document.files.proposal.file_type|getfiletype }}<br>
+                  <a href='/viewer/{{document.proposal.id.hex}}/{{document.files.proposal.id.hex}}'>{{ document.files.proposal.name }}</a><br>
+                {% endif %}
+                {% if document.files.own_material %}
+                  {{ document.files.own_material.file_type|getfiletype }}<br>
+                  <a href='/viewer/{{document.proposal.id.hex}}/{{document.files.own_material.id.hex}}'>{{ document.files.own_material.name }}</a><br>
+                {% endif %}
+                {% if document.files.docs %}
+                  {{ document.files.docs.0.file_type|getfiletype }}<br>
+                  {% for f in document.files.docs %}
+                    <a href='/viewer/{{document.proposal.id.hex}}/{{f.id.hex}}'>{{ f.name }}</a><br>
+                  {% endfor %}
+                {% endif %}
+                {% if document.files.attachment %}
+                  {{ document.files.attachment.0.file_type|getfiletype }}<br>
+                  {% for f in document.files.attachment %}
+                    <a href='/viewer/{{document.proposal.id.hex}}/{{f.id.hex}}'>{{ f.name }}</a><br>
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <div class="col-md-2">
+                  <a class='btn btn-success' href='/viewer/{{document.proposal.id.hex}}/'><i class="fa fa-search"></i></a>
+                  <a class='btn btn-success' href='/upload/download/zip/{{document.proposal.id.hex}}'><i class="fa fa-download"></i></a>
+              </div>
             </div>
-            <div class="col-md-6">
-              {% for f in document.files %}
-                {{ f.file_type|getfiletype }}<br>
-                <a href='/viewer/{{document.proposal.id}}/{{f.id}}'>{{ f.name }}</a><br>
-              {% endfor %}
-            </div>
-          </div>
+          </li>
           <hr>
           {% empty %}
             K tomuto zasadnutiu ešte niesú žiadne návrhy
           {% endfor %}
-          
+        </ol>
       </div>
         
       <div>
@@ -59,11 +92,11 @@
                        Názov návrhu
                      </td>
                      <td>
-                       Materiály
-                     </td>
-                     <td>
                        Stav
                      </td>
+                     <td>
+                     </td>
+                     </tr>
                    </tr>
                  </thead>
                  <tbody>
@@ -73,13 +106,10 @@
                       {{ proposal.proposal.name }}
                      </td>
                      <td>
-                      {% for f in proposal.files %}
-                        {{ f.file_type|getfiletype }}<br>
-                        <a href='/viewer/{{proposal.proposal.id}}/{{f.id}}'>{{ f.name }}</a><br>
-                      {% endfor %}
+                       {{ proposal.proposal.state|getstate }}
                      </td>
                      <td>
-                       {{ proposal.proposal.state|getstate }}
+                        <a class='btn btn-success' href='/viewer/{{proposal.proposal.id.hex}}/'><i class="fa fa-search"></i></a>
                      </td>
                    </tr>
                {% endfor %}

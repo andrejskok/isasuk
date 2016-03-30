@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import User
 
 def get_all_users():
-  users = User.objects.all().order_by('last_name')
+  users = User.objects.filter(details__is_active=True).order_by('last_name')
   return [(user.id, ' '.join([user.last_name, user.first_name])) for user in users]
 
 class AddUserForm(forms.Form):
@@ -25,10 +25,10 @@ class UserForm(forms.Form):
       label=_("Mandát do"),
       widget=forms.DateInput(format = '%d/%m/%Y', attrs={'placeholder':'dd/mm/RRRR'}),
       input_formats=('%d/%m/%Y', ))
-    is_student = forms.BooleanField(initial=False, required=False)
-    is_member = forms.BooleanField(initial=False, required=False)
-    can_submit = forms.BooleanField(initial=False, required=False)
-    is_chair = forms.BooleanField(initial=False, required=False)
+    is_student = forms.BooleanField(label=_("Študent"), initial=False, required=False)
+    is_member = forms.BooleanField(label=_("Člen AS"), initial=False, required=False)
+    can_submit = forms.BooleanField(label=_("Môže predkladať"), initial=False, required=False)
+    is_chair = forms.BooleanField(label=_("Člen Predsedníctva"), initial=False, required=False)
 
     def clean(self):
         cleaned_data = self.cleaned_data

@@ -1,66 +1,37 @@
 {% extends 'index.html' %}
+{% load staticfiles %}
 {% load bootstrap %}
+{% load jfutags %}
 
 {% block navigation %}
 		{% include 'navigation.html' %}
 {% endblock%}
 
 {% block content %}
-<di class='row'>
-		<div class='col-md-6'>
+<div class='row'>
+		<div class='col-md-offset-3 col-md-6'>
 			<h1>Predloženie dokumentu</h1>
 			<p>Materiály je možné predkladať vo formáte(odt, doc, docx alebo pdf)</p>
 			<form method='POST' action='{% url "upload" %}' enctype="multipart/form-data">
 				{% csrf_token %}
+				<input type="hidden" name="proposal_token" value="{{ proposal_id }}">
 				<div class="upload_field">
 				    {{ uploadform.title|bootstrap }}
-				</div>
-				<h3>Povinné náležitosti materiálu</h3>
-				<div class="upload_field">
-				    {{ uploadform.main_document|bootstrap }}
-				</div>
-				<div class="upload_field">
-				    {{ uploadform.own_material|bootstrap }}
-				</div>
-				<h3>Odporúčané náležitosti materiálu</h3>
-				<div class="upload_field">
-				    {{ uploadform.cause|bootstrap }}
-				</div>
-				<div class="upload_field">
-				    {{ uploadform.attachment|bootstrap}}
-				</div>
-				<div class="upload_field">
-				    {{ uploadform.organ|bootstrap}}
 				</div>
 				<div class="upload_field">
 				    {{ uploadform.category|bootstrap}}
 				</div>
 				<input type='submit' class="btn btn-default" name='upload_files' value='Predložiť'/>
 			</form>
-		</div>
-			
-		<div class='col-md-6'>
-			<h1>Generátor dokumentov</h1>
-			<p>
-			Tento nástroj slúži na generovanie dokumentov z vopred definovanej šablóny. Po vybratí šablóny bude nutné vyplniť povinné polia a systém Vám vygeneruje dokument s vyplnenými údajmi.
-			</p>
-			<form method='POST' action='{% url "upload" %}'>
-				{% csrf_token %}
-				{{ patternform|bootstrap }}
-				<input type='submit' class="btn btn-default" name='pattern' value='Vybrať'/>
-			</form>
-
-			{% if templateform %}
-			<form method='POST' action='{% url "upload" %}'>
-				{% csrf_token %}
-				{{ templateform|bootstrap }}
-				<input type='submit' class="btn btn-default" name='template' value='Vygenerovať dokument'/>
-			</form>
-			{% endif %}
+			<br>
+			{% jfu 'upload/proposal_form.html' 'jfu_upload' proposal_id 'fileupload3' 'Návrh' %}
+			{% jfu 'upload/upload_form.html' 'jfu_upload' proposal_id 'fileupload1' 'Vlastný materiál' %}
+			{% jfu 'upload/docs_form.html' 'jfu_upload' proposal_id 'fileupload4' 'Sprievodné dokumenty' %}
+			{% jfu 'upload/attachment_form.html' 'jfu_upload' proposal_id 'fileupload2' 'Prílohy' %}
 		</div>
 </div>
 {% endblock %}
 
 {% block footer %}
-		{% include 'footer.html' %}
+    {% include 'footer.html' %}
 {% endblock %}

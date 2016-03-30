@@ -14,7 +14,6 @@ def calendar_view(request):
       )
 
 def events_view(request):
-    print('events')
     meetings = Meeting.objects.all()
     events = []
     for meeting in meetings:
