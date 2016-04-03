@@ -57,14 +57,14 @@
               <form method='POST' action='{% url "members" %}'>
                   {% csrf_token %}
                   <input type="hidden" name="id" value="{{ member.id }}">
-                  Člen AS<input type="checkbox" name="is_member" 
-                  {% if member.details.is_member %} checked {% endif %}>
-                  Študent<input type="checkbox" name="is_student"
-                  {% if member.details.is_student %} checked {% endif %}>
-                  Môže predkladat<input type="checkbox" name="can_submit"
-                  {% if member.details.can_submit %} checked {% endif %}>
-                  Člen Predsedníctva<input type="checkbox" name="is_chair"
-                  {% if member.details.is_chair %} checked {% endif %}>
+                  <input type="checkbox" name="is_member" 
+                  {% if member.details.is_member %} checked {% endif %}>Člen AS<br>
+                  <input type="checkbox" name="is_student"
+                  {% if member.details.is_student %} checked {% endif %}>Študent<br>
+                  <input type="checkbox" name="can_submit"
+                  {% if member.details.can_submit %} checked {% endif %}>Môže predkladať<br>
+                  <input type="checkbox" name="is_chair"
+                  {% if member.details.is_chair %} checked {% endif %}>Člen Predsedníctva<br>
                   <button type='submit' class='btn btn-danger' name='save_edit' value='save_edit'>Uložiť</button>
               </form>
             </td>

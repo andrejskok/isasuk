@@ -60,7 +60,7 @@
       {% endfor %}
       {% for meeting in meetings_member %}
         <tr>
-        <td><a href='/meeting/{{ meeting.id.hex }}'>{{ meeting.title }}</a></td>
+        <td><a href='/meeting/meeting/{{ meeting.id.hex }}'>{{ meeting.title }}</a></td>
         <td>{{ meeting.group|getgroupname }}</td>
         <td>{{ meeting.date }}</td>
         <td>

@@ -4,7 +4,7 @@ register = template.Library()
 
 attendance = {
   'present': '<i class="fa fa-check"></i>',
-  'excused': 'excused',
+  'excused': 'Ospravedlnený',
   'absent': '<i class="fa fa-times"></i>',
 }
 

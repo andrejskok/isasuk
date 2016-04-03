@@ -14,7 +14,7 @@
        <h4>{{ proposal.name }}</h4>
        <h5>{{ proposal.creator.last_name }} {{ proposal.creator.first_name }}</h5>
        <h5>{{ proposal.timestamp }}</h5>
-       <a class='btn' href='/upload/download/zip/{{proposal.id.hex}}'><i class="fa fa-download"></i> *.zip</a>
+       <a class='btn' href='/upload/download/zip/{{proposal.id.hex}}'><i class="fa fa-download"></i> Všetky dokumenty *.zip</a>
        <br><br>
        <h4>Zoznam dokumentov</h4>
        <ul class="nav nav-pills nav-stacked">
@@ -54,14 +54,20 @@
           <div class="">
              {% if conclusions %}
               {% for conclusion in conclusions %}
+                <strong>{{ conclusion.meeting.group|getgroupname }}</strong><br>
                 {% if conclusion.conclusion %}
-                  <strong>{{ conclusion.meeting.group|getgroupname }}</strong><br>
                   <a class='btn' href='/upload/download/pdf/{{conclusion.conclusion.id.hex}}'><i class="fa fa-download"></i> *.pdf</a>
                   <a class='btn' href='/upload/download/original/{{conclusion.conclusion.id.hex}}'><i class="fa fa-download"></i> Originál</a>
                   <a href='/viewer/{{conclusion.proposal.id.hex}}/{{conclusion.conclusion.id.hex}}'>Uznesenie</a><br>
                 {% else %}
+                  Uznesenie k tomuto materiálu je nahradené zápisnicou zo zasadnutia<br>
+                  <a class='btn' href='/upload/download/pdf/{{conclusion.meeting.conclusion.id.hex}}'><i class="fa fa-download"></i> *.pdf</a>
+                  <a class='btn' href='/upload/download/original/{{conclusion.meeting.conclusion.id.hex}}'><i class="fa fa-download"></i> Originál</a>
+                  <a href='/viewer/{{conclusion.proposal.id.hex}}/{{conclusion.meeting.conclusion.id.hex}}'>Uznesenie</a><br>
                 {% endif %}
               {% endfor %}
+            {% else %}
+              Materiál ešte nebol prerokovaný v žiadnej komisii
             {% endif %}
           </div>
           </ul>

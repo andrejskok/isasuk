@@ -12,7 +12,12 @@
             </ul>
           </li>
         {% endif %}
-        <li><a href="{% url 'negotiation' %}">Na prerokovanie</a></li>
+        {% if request.user.details.role == 'member' %}
+        <li><a href="{% url 'negotiation' %}">Na pripomienkovanie</a></li>
+        {% endif %}
+        {% if request.user.details.role == 'admin' %}
+        <li><a href="{% url 'negotiation' %}">Na pridelenie</a></li>
+        {% endif %}
         <li><a href="{% url 'calendar' %}">Kalendár</a></li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Členovia<span class="caret"></span></a>
@@ -23,6 +28,7 @@
           </ul>
         </li>
         <li><a href="{% url 'my_meetings' %}">Moje zasadnutia</a></li>
+        <li><a href="{% url 'archive' %}">Archív</a></li>
         <li><a href="{% url 'logout' %}">Odhlásiť sa</a></li>
       </ul>
     </div>

@@ -28,13 +28,13 @@ class PatternChoiceForm(forms.Form):
     select_pattern = forms.ChoiceField(label=_("Typ zmluvy"), choices=patterns)
 
 class RentContractForm(forms.Form):
-    specification = forms.CharField(required=False, widget=forms.Textarea, label=_("Špecifikácia predmetu nájmu"))
-    identification = forms.CharField(required=False, widget=forms.Textarea, label=_("Identifikácia nájomcu"))
-    purpose = forms.CharField(required=False, widget=forms.Textarea, label=_("Účel nájmu, spôsob a rozsah užívania predmetu nájmu "))
-    price = forms.CharField(required=False, widget=forms.Textarea, label=_("Výška nájomného, cena za poskytované služby a dodávku energií "))
-    period = forms.CharField(required=False, widget=forms.Textarea, label=_("Doba nájmu"))
-    reason = forms.CharField(required=False, widget=forms.Textarea, label=_("Zdôvodnenie výberu nájomcu"))
-    technical_evaluation = forms.CharField(required=False, widget=forms.Textarea, label=_("Technické zhodnotenie predmetu nájmu"))
+    specification = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 4, 'style': 'resize:vertical'}), label=_("Špecifikácia predmetu nájmu"))
+    identification = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 4, 'style': 'resize:vertical'}), label=_("Identifikácia nájomcu"))
+    purpose = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 4, 'style': 'resize:vertical'}), label=_("Účel nájmu, spôsob a rozsah užívania predmetu nájmu "))
+    price = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 4, 'style': 'resize:vertical'}), label=_("Výška nájomného, cena za poskytované služby a dodávku energií "))
+    period = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 4, 'style': 'resize:vertical'}), label=_("Doba nájmu"))
+    reason = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 4, 'style': 'resize:vertical'}), label=_("Zdôvodnenie výberu nájomcu"))
+    technical_evaluation = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 4, 'style': 'resize:vertical'}), label=_("Technické zhodnotenie predmetu nájmu"))
 
 
 

@@ -9,24 +9,28 @@
 {% endblock%}
 
 {% block content %}
-    <form method='POST' action='/members/attendance/'>
-    {% csrf_token %}
-      <h3>Komisia</h3>
-      <select name="choice" class="form-control">
-         <option type="checkbox" name="choice" value="none" >---------</option>
-        {% for id, name in comissions %}
-          <option type="checkbox" name="choice" value="{{ id }}"
-          {% if id == choice %}
-            selected
-          {% endif %}
-          >{{ name }}</option>
-        {% endfor %}
-      </select>
-      <br>
-      <button type='submit' name='select' class='btn btn-success'>Vybrať</button>
-    </form>
-
     <div class='row'>
+      <div class='col-md-4'>
+      <form method='POST' action='/members/attendance/'>
+      {% csrf_token %}
+        <h3>Komisia</h3>
+        <select name="choice" class="form-control">
+           <option type="checkbox" name="choice" value="none" >---------</option>
+          {% for id, name in comissions %}
+            <option type="checkbox" name="choice" value="{{ id }}"
+            {% if id == choice %}
+              selected
+            {% endif %}
+            >{{ name }}</option>
+          {% endfor %}
+        </select>
+        <br>
+        <button type='submit' name='select' class='btn btn-success'>Vybrať</button>
+      </form>
+      </div>
+    </div>
+    <div class='row'>
+      <div class='col-md-12'>
       <h3>Dochádzka</h3>
       {% if meetings %}
       <table class="table">
@@ -68,6 +72,7 @@
     {% else %}
       Pre danú komisiu ešte neboli žiadne zasadnutia
     {% endif %}
+      </div>
     </div>
 {% endblock %}
 

@@ -1,26 +1,104 @@
 {% extends 'index.html' %}
-
+{% load getfiletype %}
+{% load getstate %}
+{% load getgroupname %}
+{% load timeformatters %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
 {% endblock%}
 
 {% block content %}
-<div>
-    <div>
-    <h1>Dokumenty k najbližšiemu zasadnutiu</h1>
-
-        {{ documents }}
-
+<div class='row'>
+    <div class='col-md-3'>
+        <h4>Najbližšie zasadnutia</h4>
+        <ul class="nav nav-pills nav-stacked">
+          {% for meeting in meetings %}
+            <li role="presentation"
+            {% if meeting.id.hex == id %}
+              class='active'
+            {% endif %}
+            >
+              <a href="/meeting/meeting/{{ meeting.id.hex }}">
+                <h4>{{ meeting.title }}</h4>
+                <h5>{{ meeting.group|getgroupname }}</h5>
+                <h5>{{ meeting.date|getdate }}</h5>
+              </a>
+            </li>
+          {% empty %}
+            <li role="presentation">
+              Momentálne nie sú naplánované žiadne zasadnutia
+            </li>
+          {% endfor %}
+        </ul>
+        <h4>Posledné zasadnutia</h4>
+        <ul class="nav nav-pills nav-stacked">
+          {% for meeting in last_meetings %}
+            <li role="presentation"
+            {% if meeting.id.hex == id %}
+              class='active'
+            {% endif %}
+            >
+              <a href="/meeting/meeting/{{ meeting.id.hex }}">
+                <h4>{{ meeting.title }}</h4>
+                <h5>{{ meeting.group|getgroupname }}</h5>
+                <h5>{{ meeting.date|getdate }}</h5>
+              </a>
+            </li>
+          {% empty %}
+            <li role="presentation">
+              Momentálne nie sú v histórií žiadne zasadnutia
+            </li>
+          {% endfor %}
+        </ul>
     </div>
-      
-    <div>
-    <h1>Aktuálne dokumenty</h1>
-
-        {{ documents }}
-
+    <div class='col-md-9'>
+      <div>
+      <h4>Naposledy pridané materiály</h4>
+         <div>
+             {% if documents %}
+               <table class="table">
+                 <thead>
+                   <tr>
+                     <td>
+                       Názov návrhu
+                     </td>
+                     <td>
+                      Dátum predloženia
+                     </td>
+                     <td>
+                       Stav
+                     </td>
+                     <td>
+                     </td>
+                     </tr>
+                   </tr>
+                 </thead>
+                 <tbody>
+               {% for proposal in documents %}
+                   <tr>
+                     <td>
+                      {{ proposal.proposal.name }}
+                     </td>
+                    <td>
+                       {{ proposal.proposal.timestamp}}
+                     </td>
+                     <td>
+                       {{ proposal.proposal.state|getstate }}
+                     </td>
+                     <td>
+                        <a class='btn btn-success' href='/viewer/{{proposal.proposal.id.hex}}/'><i class="fa fa-search"></i></a>
+                     </td>
+                   </tr>
+               {% endfor %}
+                 </tbody>
+               </table>
+             {% else %}
+               <p>V súčasnosti nemáte žiadne návrhy.</p>
+             {% endif %}
+             </div>
+      </div>
     </div>
-
 </div>
 {% endblock %}
 

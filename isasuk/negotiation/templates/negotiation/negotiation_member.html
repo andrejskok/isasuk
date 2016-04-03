@@ -9,6 +9,50 @@
 
 {% block content %}
 <div class='row'>
+  {% if meetings %}
+  <table class='table'>
+    <thead>
+      <td>
+        Názov
+      </td>
+      <td>
+        Komisia
+      </td>
+      <td>
+        Dátum
+      </td>
+      <td>
+        Zápisnica
+      </td>
+    </thead>
+    <tbody>
+      {% for meeting in meetings %}
+        <tr>
+          <td>
+            {{ meeting.title }}
+          </td>
+          <td>
+            {{ meeting.group|getgroupname }}
+          </td>
+          <td>
+            {{ meeting.date }}
+          </td>
+          <td>
+            <a href='/negotiation/{{meeting.id.hex}}/{{ meeting.conclusion.id.hex }}'>
+            <i class="fa fa-search"></i>
+                Zápisnica
+            </a><br>
+          </td>
+          <td>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    Momentálne nie sú materiály na pripomienkovanie
+  {% endif %}
+  <!--
   {% if leader or groups %}
     <div class='col-md-4'>
       <ul class="nav nav-pills nav-stacked">
@@ -68,7 +112,7 @@
     </div>
   {% else %}
     Nie ste členom ani predsedom žiadnej komisie, takže nemôžete pripomienkovať dokumenty.
-  {% endif %}
+  {% endif %} -->
 </div>
 {% endblock %}
 

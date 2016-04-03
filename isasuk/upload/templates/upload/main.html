@@ -21,13 +21,18 @@
 				<div class="upload_field">
 				    {{ uploadform.category|bootstrap}}
 				</div>
-				<input type='submit' class="btn btn-default" name='upload_files' value='Predložiť'/>
+				<input type='submit' class="btn btn-default" name='upload_files' value='Predložiť' style="display:none" id="submit-form"/>
 			</form>
 			<br>
+		<div style="padding-left:15px">
 			{% jfu 'upload/proposal_form.html' 'jfu_upload' proposal_id 'fileupload3' 'Návrh' %}
 			{% jfu 'upload/upload_form.html' 'jfu_upload' proposal_id 'fileupload1' 'Vlastný materiál' %}
 			{% jfu 'upload/docs_form.html' 'jfu_upload' proposal_id 'fileupload4' 'Sprievodné dokumenty' %}
 			{% jfu 'upload/attachment_form.html' 'jfu_upload' proposal_id 'fileupload2' 'Prílohy' %}
+		</div>
+		<div class="btn btn-success">
+			<label for="submit-form">Predložiť</label>
+		</div>
 		</div>
 </div>
 {% endblock %}

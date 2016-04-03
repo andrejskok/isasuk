@@ -7,7 +7,6 @@ urlpatterns = [
     url(r'^accounts/', include('isasuk.accounts.urls')),
     url(r'^home/', include('isasuk.home.urls')),
     url(r'^upload/', include('isasuk.upload.urls')),
-    url(r'^objections/', include('isasuk.objections.urls')),
     url(r'^negotiation/', include('isasuk.negotiation.urls')),
     url(r'^meeting/', include('isasuk.meeting.urls')),
     url(r'^viewer/', include('isasuk.viewer.urls')),

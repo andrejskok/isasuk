@@ -2,13 +2,13 @@
 
 {% block JS_OPTS %}
 autoUpload: false,
-maxNumberOfFiles: 2,
+maxNumberOfFiles: 1,
 sequentialUploads: true,
-acceptFileTypes: /(\.|\/)(doc|html|docx|pdf|odt|txt|jgp|jpeg|png|gif?g)$/i
+acceptFileTypes: /(\.|\/)(doc|html|docx|pdf|odt|txt?g)$/i
 {% endblock %}
 
 {% block FILE_INPUT %}
-<input type="hidden" name="type" value="attachment">
+<input type="hidden" name="type" value="revision">
 <input 
     type="file" name="files[]"
 

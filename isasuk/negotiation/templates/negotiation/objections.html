@@ -4,6 +4,7 @@
 {% load getgroupname %}
 {% load getfiletype %}
 {% load getimportance %}
+{% load jfutags %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
@@ -14,7 +15,7 @@
   <div class='col-md-12'>
     <div class='col-md-8'>
       <div class="row">
-        <h3>Pripomienky k návrhu: {{proposal.name}}</h3>
+        <h3>Pripomienky k dokumentu</h3>
         <p>Text ktorý chcete pripomienkovať označte myšou.</p>
           <div style="height:700px;min-width:700px; postion:relative" id='objections_target' class='col-md-12'>
             {% include path %}
@@ -23,7 +24,7 @@
       <div class="row">
         <div class='col-md-12' style='height:600px;'>
           <h4>Vytvoriť novú pripomienku</h4>
-          <form method='POST' action='/negotiation/{{group_name}}/{{proposal_id}}/{{file_id}}' class='col-md-10'>
+          <form method='POST' action='' class='col-md-10'>
             {% csrf_token %}
             <label>Pôvodný text</label><br>
             <div style='border:1px solid #ccc;min-height:30px;border-radius:5px;' id='selected_text'>
@@ -78,24 +79,14 @@
       </div>
     </div>
     <div class='col-md-4'>
-      <h3>Informácie o návrhu</h3>
-       {% for obj in files %}
-        {{obj.file.file_type|getfiletype}} {{ obj.objections_count}}<br>
-        <a href='/negotiation/{{group_name}}/{{proposal.id.hex}}/{{obj.file.id.hex}}'>{{ obj.file.name }}</a><br>
-       {% endfor %}
-       {% if user == proposal.creator %}
-        <h3>Nahrať revíziu</h3>
-        <form action='{{ request.path }}' method='POST' enctype="multipart/form-data">
-          {% csrf_token %}
-          <div class="form-group">
-            <input type="file" name="revision">
-          </div>
-          <button class='btn btn-success' name='upload_revision' value='upload'>Nahrať</button>
-        </form>
-       {% endif %}
-       {% if archive %}
+      <h3>Informácie o dokumente</h3>
+       <div style='padding-left:15px;'>
+       {% jfu 'negotiation/revision_form.html' 'negotiation_upload' meeting.id.hex 'fileupload2' 'Revízia' %}
+       </div>
+       <button class='btn btn-success' id='save_revision'>Uložiť</button>
+       {% if history %}
         <h3>Prehľad histórie</h3>
-        {% for file in archive %}
+        {% for file in history %}
           {{ file.timestamp }}<br>
           <a href='/archive/{{ file.id.hex }}'>{{ file.name }}</a><br>
         {% endfor %}

@@ -50,7 +50,6 @@ INSTALLED_APPS = (
     'isasuk.upload',
     'isasuk.viewer',
     'isasuk.members',
-    'isasuk.objections',
     'isasuk.calendar',
     'isasuk.archive',
 )
@@ -76,7 +75,6 @@ TEMPLATES = [
                  BASE_DIR + '/accounts/templates',
                  BASE_DIR + '/upload/templates',
                  BASE_DIR + '/home/templates',
-                 BASE_DIR + '/objections/templates',
                  BASE_DIR + '/meeting/templates',
                  BASE_DIR + '/docs',
                  BASE_DIR + '/isasuk/static/storage/docs',

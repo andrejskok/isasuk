@@ -13,10 +13,45 @@ import psutil
 from datetime import datetime
 
 def home_view_admin(request, meeting_id):
-    return render_to_response('home/main_admin.html')
+    meetings = Meeting.objects.filter(date__gt=datetime.now(), closed=False, state='created').order_by('date')[:5]
+    last_meetings = Meeting.objects.filter(date__lt=datetime.now(), closed=True, state='created').order_by('date')[:5]
+    if not meeting_id and len(meetings) > 0:
+      url = '/home/' + meetings[0].id.hex
+      return redirect(url)
+
+    meeting = Meeting.objects.get(id=meeting_id) if len(meetings) > 0 else []
+    documents = []
+    proposals = Proposal.objects.all().exclude(state='initial').order_by('timestamp')[:10]
+    for p in proposals:
+      files = File.objects.filter(proposal_id=p.id.hex)
+      documents.append({
+        'proposal': p,
+        'files': get_proposal_files(p.id),
+      })
+    meeting_materials = []
+    if meeting:
+      assigned_ids = MeetingsToMaterials.objects.filter(meeting=meeting.id.hex).order_by('order')
+      for assignement in assigned_ids:
+        proposal = Proposal.objects.get(id=assignement.proposal_id)
+        meeting_materials.append({
+          'proposal': proposal,
+          'files': get_proposal_files(proposal.id.hex),
+        })
+    return render_to_response('home/main_admin.html',
+      {
+        'documents': documents,
+        'meeting_materials': meeting_materials,
+        'meetings': meetings,
+        'last_meetings': last_meetings,
+        'id': meeting_id,
+        'selected_meeting': meeting,
+      },
+      context_instance=RequestContext(request),
+    )
 
 def home_view_member(request, meeting_id):
     meetings = Meeting.objects.filter(date__gt=datetime.now(), closed=False, state='created').order_by('date')[:5]
+    last_meetings = Meeting.objects.filter(date__lt=datetime.now(), closed=True, state='created').order_by('date')[:5]
     if not meeting_id and len(meetings) > 0:
       url = '/home/' + meetings[0].id.hex
       return redirect(url)
@@ -44,6 +79,7 @@ def home_view_member(request, meeting_id):
         'documents': my_documents,
         'meeting_materials': meeting_materials,
         'meetings': meetings,
+        'last_meetings': last_meetings,
         'id': meeting_id,
         'selected_meeting': meeting,
       },

@@ -14,18 +14,28 @@
       <thead>
         <tr>
           <td>
+          <strong>
             Názov návrhu
+          </strong>
           </td>
           <td>
+          <strong>
             Predkladateľ
+          </strong>
           </td>
-          <td>
+          <td class="col-md-1">
+          <strong>
             Dátum predloženia
+          </strong>
           </td>
-          <td>
+          <td class="col-md-3">
+          <strong>
             Stav
-          </td>
+          </strong>
+          </td class="col-md-2">
           <td>
+          </td>
+         <td class="col-md-3">
           </td>
         </tr>
       </thead>
@@ -80,45 +90,48 @@
           <td>
               {{ proposal.proposal.timestamp }}
           </td>
-          <td>
-              {{proposal.proposal.state}}
+          <td class='col-md-3'>
               {% if proposal.done_all %}
                 Prerokované vo všektých komisiách
               {% else %}
-                Prerokované v komisiách:
+                <strong>
+                Prerokované v komisiách<br>
+                </strong>
                 {% for c in proposal.done %}
-                  {{ c|getgroupname}}
+                  {{ c|getgroupname}}<br>
                 {% endfor %}
-                Zostáva prerokovať v:
+                <strong>
+                Zostáva prerokovať v<br>
+                </strong>
                 {% for c in proposal.left %}
-                  {{ c|getgroupname}}
+                  {{ c|getgroupname}}<br>
                 {% endfor %}
               {% endif %}
           </td>
 
-          <td>
+          <td class='col-md-2'>
               <a class='btn btn-success' href='/viewer/{{ proposal.proposal.id.hex}}/'><i class="fa fa-search"></i></a>
               <a class='btn btn-success' href='/upload/download/zip/{{ proposal.proposal.id.hex}}'><i class="fa fa-download"></i></a>
           </td>
-          <td>
-          <div class='row'>
-            {% if proposal.done_all %}
-            <div class='col-md-6'>
+          <td class='col-md-3'>
+            <div class='row'>
+              {% if proposal.done_all %}
+              <div class="col-md-6">
+                  <form method='POST' action='{% url "negotiation" %}'>
+                   {% csrf_token %}
+                    <button type='submit' value='{{proposal.proposal.id.hex}}' name='assign' class='btn btn-success'>Prideliť</button>
+                  </form>
+              </div>
+              <div class="col-md-6">
                 <form method='POST' action='{% url "negotiation" %}'>
-                 {% csrf_token %}
-                  <button type='submit' value='{{proposal.proposal.id.hex}}' name='assign' class='btn btn-success'>Prideliť</button>
+                  {% csrf_token %}
+                  <button type='submit' value='{{proposal.proposal.id.hex}}' name='report' class='btn btn-danger'>
+                      Zamietnuť
+                  </button>
                 </form>
+              </div>
+              {% endif %}
             </div>
-            <div class='col-md-6'>
-              <form method='POST' action='{% url "negotiation" %}'>
-                {% csrf_token %}
-                <button type='submit' value='{{proposal.proposal.id.hex}}' name='report' class='btn btn-danger'>
-                    Zamietnuť
-                </button>
-              </form>
-            </div>
-            {% endif %}
-          </div>
           </td>
         </tr>
         {% endfor %}

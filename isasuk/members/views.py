@@ -65,6 +65,7 @@ def members_view(request):
         successfull_user_edit = False
         userform = UserForm()
         if 'add_user' in request.POST:
+            print('aaaa')
             userform = UserForm(request.POST)
             if userform.is_valid():
                 id = add_user(request.POST)
@@ -73,7 +74,6 @@ def members_view(request):
                 userform = UserForm()
             else:
               display = "block"
-        print(request.POST)
         if 'remove' in request.POST:
               remove_user(request.POST.get('id'))
               successfull_user_removal = True

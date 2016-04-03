@@ -70,13 +70,6 @@
 
 
     <h3>Členovia komisie</h3>
-    <div class='col-md-4'>
-    <form method='POST' action='{% url "groups" %}{{ group_name }}/'>
-        {% csrf_token %}
-        {{ form|bootstrap }}
-        <button type='submit' class='btn btn-success' name='add_user'>Pridať</button>
-    </form>
-    </div>
     {% if group_members %}
       <table class="table">
         <thead>
@@ -99,7 +92,7 @@
              {{ group.member.first_name }} {{ group.member.last_name}}
             </td>
             <td>
-              {{ gropu.member.email }}
+              {{ group.member.email }}
             </td>
             {% if user.details.role == 'admin' %}
             <td>
@@ -117,6 +110,14 @@
     {% else %}
       <p>Komisia nemá v súčasnosti žiadnych členov.</p>
     {% endif %}
+    <h4>Pridať člena</h4>
+    <div class='col-md-4'>
+      <form method='POST' action='{% url "groups" %}{{ group_name }}/'>
+          {% csrf_token %}
+          {{ form|bootstrap }}
+          <button type='submit' class='btn btn-success' name='add_user'>Pridať</button>
+      </form>
+    </div>
     </div>
   </div>
 </div>

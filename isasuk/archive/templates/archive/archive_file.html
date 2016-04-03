@@ -1,0 +1,47 @@
+{% extends 'index.html' %}
+{% load bootstrap %}
+{% load staticfiles %}
+{% load getgroupname %}
+{% load getfiletype %}
+{% load getimportance %}
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<script src="{% static 'js/objections.js' %}"></script>
+  <div class='col-md-12'>
+    <h3>{{file.name}}</h3>
+    <div style="height:700px;min-width:700px; postion:relative" id='objections_target' class='col-md-12'>
+      {% include path %}
+    </div>
+      <div class='col-md-12'>
+      {% if objections %}
+      <br><br>
+        <h4>Pripomienky</h4>
+        {% for objection in objections %}
+          <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title">Pripomienka od: {{ objection.user_id.first_name}} {{ objection.user_id.last_name}} </h3><h5>Dátum: {{ objection.timestamp }}</h5>
+              </div>
+              <div class="panel-body">
+                Priorita: {{ objection.importance|getimportance }}<br>
+                <h5>Pôvodný text</h5>
+                  <div style='border:1px solid #ccc;min-height:30px;border-radius:5px;' class='selected_text col-md-12'>
+                     {{ objection.original_text|safe }}
+                  </div>
+                <h5>Komentár</h5>
+                  <textarea class="form-control" name='commentary'>{{ objection.objection }}</textarea>
+                </div>
+            </div>
+        {% endfor %}
+      {% endif %}
+      </div>
+  </div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}
+

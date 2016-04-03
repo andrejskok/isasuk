@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 def get_all_users():
   users = User.objects.filter(details__is_active=True).order_by('last_name')
-  return [(user.id, ' '.join([user.last_name, user.first_name])) for user in users]
+  return [(user.id, ' '.join([user.first_name, user.last_name])) for user in users]
 
 class AddUserForm(forms.Form):
   users = forms.ChoiceField()

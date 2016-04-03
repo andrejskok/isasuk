@@ -9,40 +9,65 @@
 {% endblock%}
 
 {% block content %}
-<div class='row'>
-  <h4>Dokumenty k zasadnutiu</h4>
+<div class='row' style="padding-left:15px">
+    <h4 style="padding-left:15px">Detaily zasadnutia</h4>
+    <div class="col-md-5">
+      {% if meeting.closed %}
+         <strong>Zasadnutie je už uzavreté!</strong>
+      {% endif %}
+      <h5>Názov: <strong>{{ meeting.title }}</strong></h5>
+      <h5>Názov komisie: <strong>{{ meeting.group|getgroupname }}</strong></h5>
+      <h5>Dátum <strong>{{ meeting.date|getdate }}</strong></h5>
+    </div>
+    <div class="col-md-5">
+      {% if meeting.closed %}
+      <a target='_blank' href='/viewer/file/{{ meeting.conclusion.id.hex }}'>
+      <i class="fa fa-search"></i>
+          Zápisnica
+     </a><br>
+     {% endif %}
      <a target='_blank' href='/viewer/file/{{ meeting.program.id.hex }}'>
+     <i class="fa fa-search"></i>
          Program
      </a><br>
      <a target='_blank' href='/viewer/file/{{ meeting.invitation.id.hex }}'>
+     <i class="fa fa-search"></i>
          Pozvánka
      </a>
-    <ol>
+     </div>
+</div>
+<hr>
+<div class='row' style="padding-left:15px">
+    <h4 style="padding-left:15px">Program zasadnutia</h4><br>
+    <ul class="nav">
     {% for document in meeting_materials %}
-      <li>
+      <li style="padding-left:15px">
        <div class="row">
-        <div class="col-md-5">
+        <div class="col-md-1">
+          {{ forloop.counter}}.
+        </div>
+        <div class="col-md-4">
           <strong>{{ document.proposal.name }}</strong><br>
           {{ document.proposal.creator.last_name }} {{ document.proposal.creator.first_name }}<br>
          {{ document.proposal.timestamp }} 
         </div>
         <div class="col-md-5">
            {% if document.files.proposal %}
-            {{ document.files.proposal.file_type|getfiletype }}<br>
+             <strong>{{ document.files.proposal.file_type|getfiletype }}</strong><br>
             <a href='/viewer/{{document.proposal.id.hex}}/{{document.files.proposal.id.hex}}'>{{ document.files.proposal.name }}</a><br>
           {% endif %}
           {% if document.files.own_material %}
-            {{ document.files.own_material.file_type|getfiletype }}<br>
+             <strong>{{ document.files.own_material.file_type|getfiletype }}</strong><br>
             <a href='/viewer/{{document.proposal.id.hex}}/{{document.files.own_material.id.hex}}'>{{ document.files.own_material.name }}</a><br>
           {% endif %}
           {% if document.files.docs %}
-            {{ document.files.docs.0.file_type|getfiletype }}<br>
+            <strong> {{ document.files.docs.0.file_type|getfiletype }}</strong><br>
             {% for f in document.files.docs %}
               <a href='/viewer/{{document.proposal.id.hex}}/{{f.id.hex}}'>{{ f.name }}</a><br>
             {% endfor %}
           {% endif %}
           {% if document.files.attachment %}
-            {{ document.files.attachment.0.file_type|getfiletype }}<br>
+             <strong>{{ document.files.attachment.0.file_type|getfiletype }}</strong><br>
             {% for f in document.files.attachment %}
               <a href='/viewer/{{document.proposal.id.hex}}/{{f.id.hex}}'>{{ f.name }}</a><br>
             {% endfor %}
@@ -58,7 +83,7 @@
     {% empty %}
       K tomuto zasadnutiu ešte niesú žiadne návrhy
     {% endfor %}
-  </ol>
+  </ul>
 </div>
 {% endblock %}
 

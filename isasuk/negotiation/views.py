@@ -1,16 +1,18 @@
-from django.shortcuts import render_to_response
-from django.shortcuts import redirect
+from django.shortcuts import render_to_response, redirect
+from django.http import HttpResponse
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django.views.decorators.http import require_POST
 from django.core.urlresolvers import reverse
 
 from isasuk.members.models import Group
 from isasuk.upload.models import Proposal, File
-from .models import Assignement, Objection, Report, Archive
-from ..meeting.models import MeetingsToMaterials
-from ..common.helpers import get_proposal_files, rename_and_save
+from .models import Assignement, Objection, Report, History
+from ..meeting.models import MeetingsToMaterials, Meeting
+from jfu.http import upload_receive, UploadResponse, JFUResponse
 
-import os, sys, subprocess, time
+from ..common.helpers import handle_uploaded_file, convert_file, convert_to_pdf, getFilename
+import os, sys, subprocess, time, json
 
 group_names = [
   ('asuk', 'Plénum AS UK'),
@@ -61,36 +63,18 @@ def negotiation_view(request):
       context_instance=RequestContext(request)
     )
   elif request.user.details.role == 'member':
-    leader = Group.objects.filter(member=request.user, is_chair=True)
-    print(leader)
-    if len(leader) != 0:
-      return redirect(reverse('negotiation')+ leader[0].group_name)
-    groups = Group.objects.filter(member=request.user, is_chair=False)
-    print(groups)
-    if len(groups) != 0:
-      return redirect(reverse('negotiation')+ groups[0].group_name)
+    groups = Group.objects.filter(member=request.user).values_list('group_name', flat=True)
+    meetings = Meeting.objects.filter(group__in=groups, closed=True)
     return render_to_response(
       'negotiation/negotiation_member.html',
       {
+        'meetings': meetings,
       },
       context_instance=RequestContext(request)
     )
 
 def negotiation_group_view(request, group):
   if request.user.details.role == 'member':
-    if 'upload' in request.POST:
-      proposal_id = request.POST.get('upload')
-      assignement = Assignement.objects.get(proposal_id=proposal_id, main_group=group)
-      if assignement.group_name != 'predsednictvo':
-        file_id= handle_uploaded_file(request, request.FILES.get('result'), proposal_id, 'commission_result')
-        assignement.group_name = 'predsednictvo'
-        assignement.main_group = 'predsednictvo'
-        assignement.save()
-      else:
-        handle_uploaded_file(request, request.FILES.get('files'), proposal_id, 'chair_result')
-        assignement.group_name = 'asuk'
-        assignement.main_group = 'asuk'
-        assignement.save()
     leader = Group.objects.filter(member=request.user, is_chair=True)
     groups = Group.objects.filter(member=request.user, is_chair=False)
     is_leader = len(Group.objects.filter(member=request.user, group_name=group, is_chair=True)) > 0
@@ -175,54 +159,41 @@ def report_view(request, id):
       context_instance=RequestContext(request)
     )
 
-def objections_view(request, group, proposal_id, file_id):
+def objections_view(request, meeting_id, file_id):
     if request.user.details.role == 'member':
       if 'add' in request.POST:
         objection = Objection(
           user_id=request.user,
           file_id=file_id,
-          proposal_id=proposal_id,
           original_text=request.POST.get('original_text'),
           objection=request.POST.get('objection'),
           importance=request.POST.get('importance'),
         )
         objection.save()
-
-      if 'upload_revision' in request.POST:
-          new_file = request.FILES
-          file_type = archive_file(file_id)
-          new_file_id = handle_uploaded_file(request, request.FILES.get('revision'), proposal_id, file_type)
-          return redirect('/negotiation/'+group+'/'+proposal_id+'/'+new_file_id)
+      if 'save_revision' in request.POST:
+          new_file = File.objects.get(id=request.POST.get('id'))
+          meeting = Meeting.objects.get(id=meeting_id)
+          file_type = archive_file(meeting.conclusion.id.hex, meeting_id)
+          meeting.conclusion = new_file
+          meeting.save()
+          return HttpResponse(json.dumps({'success': True, 'url': 'negotiation/' + meeting_id + '/' + new_file.id.hex}))
+      meeting = Meeting.objects.get(id=meeting_id)
       main_file = File.objects.get(id=file_id)
-      leader = Group.objects.filter(member=request.user, is_chair=True)
-      groups = Group.objects.filter(member=request.user, is_chair=False)
-      proposal = Proposal.objects.get(id=proposal_id)
-      archive = Archive.objects.filter(proposal_id=proposal_id, file_type=main_file.file_type).order_by('-timestamp')
+      history = History.objects.filter(meeting_id=meeting_id).order_by('-timestamp')
       objections = Objection.objects.filter(file_id=file_id).order_by('-importance', '-timestamp')
-      files = File.objects.filter(proposal_id=proposal_id)
-      files_struct = []
-      for f in files:
-        obj_count = len(Objection.objects.filter(file_id=f.id))
-        files_struct.append({
-          'file': f,
-          'objections_count': obj_count
-          })
-      return render_to_response(
-        'negotiation/objections.html',
-        {
+      d = {
           'path': main_file.id.hex + "/" + ('.').join(main_file.name.split('.')[:-1]) + ".html",
-          'archive': archive,
+          'history': history,
           'request': request,
           'user': str(request.user.id),
-          'leader': leader,
-          'groups': groups,
-          'proposal': proposal,
-          'files': files_struct,
-          'group_name': group,
-          'proposal_id': proposal_id,
+          'meeting': meeting,
           'file_id': file_id,
           'objections': objections,
-        },
+        }
+      print(d)
+      return render_to_response(
+        'negotiation/objections.html',
+        d,
         context_instance=RequestContext(request)
       )
 
@@ -230,12 +201,12 @@ def objections_redirect_view(request, group, proposal_id):
   main_file = File.objects.filter(proposal_id=proposal_id).get(file_type='proposal')
   return redirect('/negotiation/' + group + '/' + proposal_id + '/' + str(main_file.id))
 
-def archive_file(file_id):
+def archive_file(file_id, meeting_id):
   old_file = File.objects.get(id=file_id)
   file_type = old_file.file_type
-  archived_file = Archive(
+  archived_file = History(
       id=old_file.id,
-      proposal_id=old_file.proposal_id,
+      meeting_id=meeting_id,
       name=old_file.name,
       path='isasuk/static/storage/docs',
       file_type=old_file.file_type,
@@ -244,29 +215,31 @@ def archive_file(file_id):
   archived_file.save()
   return file_type
 
-def handle_uploaded_file(request, f, file_id, file_type):
-    if not f:
-      return
-    file_instance = File(
-        proposal_id=file_id,
-        name=f.name,
-        path='isasuk/static/storage/docs',
-        file_type=file_type,
-    )
-    filename = 'isasuk/static/storage/docs/'+ str(file_instance.id) + '/' + f.name
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, 'wb+') as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
-    p1 = subprocess.Popen(
-        ["powershell.exe",
-        "C:/\"Program Files (x86)/LibreOffice 4\"/program/soffice.exe --headless --convert-to pdf " + "isasuk/static/storage/docs/" + str(file_instance.id) + "/" + f.name + " --outdir "  + "isasuk/static/storage/docs/" + str(file_instance.id)], stdout=sys.stdout)
-    p1.wait()
-    time.sleep(1)
-    p2 = subprocess.Popen(
-        ["powershell.exe",
-        "D:/Downloads/pdf2html/pdf2htmlEX.exe " + "isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".pdf" + " isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".html"], stdout=sys.stdout)
-    p2.wait()
-    time.sleep(1)
-    file_instance.save()
-    return str(file_instance.id)
+@require_POST
+def upload_file( request ):
+    file = upload_receive( request )
+    instance = File( file = file, proposal_id=request.POST.get('proposal_id'), file_type=request.POST.get('type'), name=file.name.split('/')[-1])
+    instance.save()
+    convert_file(instance)
+    basename = os.path.basename( instance.file.path )
+
+    file_dict = {
+        'name' : basename,
+        'size' : file.size,
+        'deleteUrl': reverse('negotiation_delete', kwargs = { 'id': instance.id.hex }),
+        'deleteType': 'POST',
+    }
+
+    return UploadResponse( request, file_dict )
+
+@require_POST
+def delete_file(request, id):
+    success = True
+    try:
+        instance = File.objects.get( id = id )
+        os.unlink( instance.file.path )
+        instance.delete()
+    except UpFile.DoesNotExist:
+        success = False
+
+    return JFUResponse( request, success )

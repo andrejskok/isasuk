@@ -1,4 +1,31 @@
 $(document).ready(function(){
+
+    $('#save_revision').click(function() {
+      var button = $('#fileupload2 .delete').eq(0);
+      if (button) {
+        var url = button.data('url');
+        var parts = url.split('/');
+        var id = parts[parts.length-1];
+        if (id) {
+          var data = {
+              id: id,
+              csrfmiddlewaretoken: $('#fileupload2 input[name='+'"csrfmiddlewaretoken"'+']').val(),
+              save_revision: true,
+          }
+          $.ajax({
+            url: window.location.pathname,
+            method: "POST",
+            data: data,
+           })
+          .done(function( data ) {
+              data = JSON.parse(data);
+              if (data.success) {
+                window.location.pathname = data.url;
+              }
+          });
+        }
+      }
+    })
   
     $('.selected_text').each(function(index, element){
       var d = $(element).children('div').first()

@@ -6,8 +6,9 @@ statetypes = {
   'new': 'Nový',
   'reported': 'Nahlásený',
   'assigned': 'Priradený komisií',
-  'meeting': 'Na prerokovanie v AS UK',
-  'approved': 'Schválený',
+  'assigned_asuk': 'Priradený plénu AS UK',
+  'approved_comission': 'Prerokovaný v komisií',
+  'finished': 'Prerokovanie v pléne UK ukončené',
 }
 
 @register.filter
