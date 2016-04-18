@@ -27,7 +27,7 @@ def get_proposal_files(id):
 
 def rename_and_save(file, name):
   extension = getExtension(file.file.path)
-  path = '\\'.join(file.file.path.split('\\')[0:-1])
+  path = '/'.join(file.file.path.split('/')[0:-1])
   new_path =  os.path.join(path, name) + '.' + extension
   old_path = file.file.path
   os.rename(file.file.path, new_path)
@@ -49,37 +49,31 @@ def convert_file(file_instance):
     if getExtension(file_instance.name) != 'pdf':
       while True:
           try:
-              p1 = subprocess.Popen(
-                  ["powershell.exe",
-                  "C:\\\"Program Files (x86)\\LibreOffice 4\"\\program\\soffice.exe --headless --convert-to pdf " + "'isasuk\\static\\storage\\docs\\" + str(file_instance.id.hex) + "\\" + file_instance.name + "' --outdir "  + "isasuk\\static\\storage\\docs\\" + str(file_instance.id.hex)], stdout=sys.stdout)
+              p1 = subprocess.Popen("soffice --headless --convert-to pdf 'isasuk/static/storage/docs/" + str(file_instance.id.hex) + "/" + file_instance.name + "' --outdir "  + "isasuk/static/storage/docs/" + str(file_instance.id.hex), shell=True, stdout=sys.stdout)
               p1.wait()
               break
           except:
-               print("Oops! Problem occured.  Try again...")
-    iterate = True
-    while iterate:
-        p2 = subprocess.Popen(
-            ["powershell.exe",
-            "D:\\Downloads\\pdf2html\\pdf2htmlEX.exe " + "'isasuk\\static\\storage\\docs\\" + str(file_instance.id.hex) + "\\" + ('.').join(file_instance.name.split('.')[:-1]) + ".pdf'" + " 'isasuk\\static\\storage\\docs\\" + str(file_instance.id.hex) + "\\" + ('.').join(file_instance.name.split('.')[:-1]) + ".html'"], bufsize=1, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
-        for line in p2.stderr:
-            print(line)
-            if line.startswith(b'I/O Error') or line.startswith(b'Error'):
-              print("Trying again....")
-            else:
-              p2.wait()
-              iterate = False
-              break
-    file_instance.save()
-    return str(file_instance.id)
+                 print("Oops! Problem occured.  Try again...")
+      iterate = True
+      while iterate:
+          p2 = subprocess.Popen("pdf2htmlEX " + "'isasuk/static/storage/docs/" + str(file_instance.id.hex) + "/" + ('.').join(file_instance.name.split('.')[:-1]) + ".pdf'" + " 'isasuk/static/storage/docs/" + str(file_instance.id.hex) + "/" + ('.').join(file_instance.name.split('.')[:-1]) + ".html'", shell=True, bufsize=1, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
+          for line in p2.stderr:
+              print(line)
+              if line.startswith(b'I/O Error') or line.startswith(b'Error'):
+                print("Trying again....")
+              else:
+                p2.wait()
+                iterate = False
+                break
+      file_instance.save()
+      return str(file_instance.id)
 
 def convert_to_pdf(file_name):
     path = settings.BASE_DIR + '/isasuk/media/' + file_name
     out_path = settings.BASE_DIR + '/isasuk/media/'
     while True:
       try:
-          p1 = subprocess.Popen(
-              ["powershell.exe",
-              "C:\\\"Program Files (x86)\\LibreOffice 4\"\\program\\soffice.exe --headless --convert-to pdf " + "'" + path + "' --outdir "  + out_path], stdout=sys.stdout)
+          p1 = subprocess.Popen("soffice --headless --convert-to pdf " + "'" + path + "' --outdir "  + out_path, shell=True, stdout=sys.stdout)
           p1.wait()
           break
       except:
@@ -103,26 +97,47 @@ def handle_uploaded_file(request, f, file_id, file_type):
     if getExtension(f.name) != 'pdf':
       while True:
           try:
-              p1 = subprocess.Popen(
-                  ["powershell.exe",
-                  "C:\\\"Program Files (x86)\\LibreOffice 4\"\\program\\soffice.exe --headless --convert-to pdf " + "'isasuk\\static\\storage\\docs\\" + str(file_instance.id) + "\\" + f.name + "' --outdir "  + "isasuk\\static\\storage\\docs\\" + str(file_instance.id)], stdout=sys.stdout)
+              p1 = subprocess.Popen("soffice --headless --convert-to pdf " + "'isasuk/static/storage/docs/" + str(file_instance.id) + "/" + f.name + "' --outdir "  + "isasuk/static/storage/docs/" + str(file_instance.id), shell=True, stdout=sys.stdout)
               p1.wait()
               break
           except:
                print("Oops! Problem occured.  Try again...")
-    iterate = True
-    while iterate:
-        p2 = subprocess.Popen(
-            ["powershell.exe",
-            "D:\\Downloads\\pdf2html\\pdf2htmlEX.exe " + "'isasuk\\static\\storage\\docs\\" + str(file_instance.id) + "\\" + ('.').join(f.name.split('.')[:-1]) + ".pdf'" + " 'isasuk\\static\\storage\\docs\\" + str(file_instance.id) + "\\" + ('.').join(f.name.split('.')[:-1]) + ".html'"], bufsize=1, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
-        print('here')
-        for line in p2.stderr:
-            print(line)
-            if line.startswith(b'I/O Error') or line.startswith(b'Error'):
-              print("Trying again....")
-            else:
-              p2.wait()
-              iterate = False
-              break
-    file_instance.save()
-    return str(file_instance.id)
+      return getFilename(file_name) + '.pdf'
+
+def handle_uploaded_file(request, f, file_id, file_type):
+   if not f:
+     return
+   file_instance = File(
+       proposal_id=file_id,
+       name=f.name,
+       path='isasuk/static/storage/docs',
+       file_type=file_type,
+   )
+   filename = 'isasuk/static/storage/docs/'+ str(file_instance.id) + '/' + f.name
+   os.makedirs(os.path.dirname(filename), exist_ok=True)
+   with open(filename, 'wb+') as destination:
+       for chunk in f.chunks():
+           destination.write(chunk)
+   if getExtension(f.name) != 'pdf':
+     while True:
+         try:
+             p1 = subprocess.Popen("soffice --headless --convert-to pdf " + "'isasuk/static/storage/docs/" + str(file_instance.id) + "/" + f.name + "' --outdir "  + "isasuk/static/storage/docs/" + str(file_instance.id), shell=True, stdout=sys.stdout)
+             p1.wait()
+             break
+         except:
+              print("Oops! Problem occured.  Try again...")
+     iterate = True
+     while iterate:
+         p2 = subprocess.Popen("pdf2htmlEX " + "'isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".pdf'" + " 'isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".html'", shell=True, bufsize=1, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
+         print('here')
+         for line in p2.stderr:
+             print(line)
+             if line.startswith(b'I/O Error') or line.startswith(b'Error'):
+               print("Trying again....")
+             else:
+               p2.wait()
+               iterate = False
+               break
+     file_instance.save()
+     return str(file_instance.id)
+                                   
