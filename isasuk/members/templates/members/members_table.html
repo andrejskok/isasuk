@@ -1,3 +1,5 @@
+{% load getfullname %}
+
 <div>
     <div>
     {% if data %}
@@ -11,6 +13,9 @@
               Email
             </td>
             <td>
+              Fakulta
+            </td>
+            <td>
               Mandát od
             </td>
             <td>
@@ -22,10 +27,13 @@
       {% for member in data %}
           <tr>
             <td>
-             {{member.first_name}} {{member.last_name}}
+             {{member|getfullname}}
             </td>
             <td>
               {{member.username}}
+            </td>
+            <td>
+              {{member.details.faculty}}
             </td>
             <td>
               {{member.details.start}}
@@ -56,15 +64,44 @@
             <td>
               <form method='POST' action='{% url "members" %}'>
                   {% csrf_token %}
-                  <input type="hidden" name="id" value="{{ member.id }}">
-                  <input type="checkbox" name="is_member" 
-                  {% if member.details.is_member %} checked {% endif %}>Člen AS<br>
-                  <input type="checkbox" name="is_student"
-                  {% if member.details.is_student %} checked {% endif %}>Študent<br>
-                  <input type="checkbox" name="can_submit"
-                  {% if member.details.can_submit %} checked {% endif %}>Môže predkladať<br>
-                  <input type="checkbox" name="is_chair"
-                  {% if member.details.is_chair %} checked {% endif %}>Člen Predsedníctva<br>
+                  <div class='col-md-5'>
+                    <input type="hidden" name="id" value="{{ member.id }}">
+                    <input type="checkbox" name="is_member" 
+                    {% if member.details.is_member %} checked {% endif %}>Člen AS<br>
+                    <input type="checkbox" name="is_student"
+                    {% if member.details.is_student %} checked {% endif %}>Študent<br>
+                    <input type="checkbox" name="can_submit"
+                    {% if member.details.can_submit %} checked {% endif %}>Môže predkladať<br>
+                    <input type="checkbox" name="is_chair"
+                    {% if member.details.is_chair %} checked {% endif %}>Člen Predsedníctva<br>
+                  </div>
+                  <div class='col-md-5'>
+                      <h5>Tituly pred menom</h5>
+                      <select class="form-control" name='title_before'>
+                        {% for value, name in titles_before %}
+                          <option value={{value}}
+                          {% if member.details.title_before == value %}
+                            selected
+                          {% endif %}
+                          >
+                             {{ name }}
+                          </option>
+                        {% endfor %}
+                      </select>
+
+                      <h5>Tituly za menom</h5>
+                      <select class="form-control" name='title_after'>
+                        {% for value, name in titles_after %}
+                          <option value={{value}}
+                          {% if member.details.title_after == value %}
+                            selected
+                          {% endif %}
+                          >
+                             {{ name }}
+                          </option>
+                        {% endfor %}
+                      </select>
+                  </div>
                   <button type='submit' class='btn btn-danger' name='save_edit' value='save_edit'>Uložiť</button>
               </form>
             </td>

@@ -6,10 +6,10 @@
 {% endblock%}
 
 {% block content %}
+    <h3>Zamietnuť materiál</h3>
     {{ proposal.name }}
     <form method='POST' action='/negotiation/report/{{ proposal.id }}'>
       {% csrf_token %}
-      <h3>Zamietnuť materiál</h3>
         <p>Odôvodnenie</p>
         <textarea name='reason' class='form-control'></textarea>
       <button type='submit' name='report' class='btn btn-success'>Zamietnuť</button>

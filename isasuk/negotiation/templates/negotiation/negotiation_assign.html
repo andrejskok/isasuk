@@ -47,6 +47,20 @@
       </div>
       {% endif %}
       <div class='col-md-7 col-md-offset-2'>
+          <h3>Kategória</h3>
+          <select class="form-control" name='category'>
+            {% for value, name in choices %}
+              <option value={{value}}
+              {% if proposal.category == value %}
+                selected
+              {% endif %}
+              >
+                 {{ name }}
+              </option>
+            {% endfor %}
+          </select>
+      </div>
+      <div class='col-md-7 col-md-offset-2'>
         <h3>Komisie</h3>
         {% for id, name in comissions %}
           <input type="checkbox" name="comission" value="{{ id }}" > {{ name }}<br>

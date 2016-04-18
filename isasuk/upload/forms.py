@@ -12,7 +12,7 @@ choices = [
 
 patterns = [
   ('','---'),
-  ('RentContractForm', 'Nájomná zmluva'),
+  ('RentContractForm', 'Žiadosť o nájom'),
 ]
 
 class UploadForm(forms.Form):

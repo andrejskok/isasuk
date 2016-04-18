@@ -44,9 +44,6 @@
                 {{meeting.date}}
               </td>
             {% endfor %}
-            <td>
-              Absencie
-            </td>
           </tr>
         </thead>
         <tbody>
@@ -62,9 +59,6 @@
               {% endautoescape %}
               </td>
             {% endfor %}
-            <td>
-              {{ totals |lookup:forloop.counter }}
-            </td>
           </tr>
       {% endfor %}
         </tbody>

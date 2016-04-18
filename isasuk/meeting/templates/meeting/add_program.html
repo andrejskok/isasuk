@@ -78,23 +78,23 @@
     #sortable2 li span { position: absolute; margin-left: -1.3em; }
     </style>
     <div class='row'>
-      <div class="alert alert-info">
+      <div class="col-md-10 alert alert-info">
         Program je možné neskôr upravovať alebo celý zložiť až neskôr.
       </div>
       {% if proposals or assigned_proposals %}
-      <div class='col-md-6'>
+      <div class='col-lg-6'>
         <input type='hidden' id="csrf" value='{{ csrf_token }}' />
         <input type='hidden' id="meeting_id" value='{{ meeting.id.hex }}' />
         <h4>Pridelené materiály</h4>
         <ul id="sortable1" class="connectedSortable">
           {% for proposal in proposals %}
             <li class="ui-state-default" data-id="{{ proposal.id.hex }}">
-              {{ proposal.name }}
+              <strong>{{ proposal.name }}</strong>
               <div class='visibility'>
                 <i class="fa fa-sort-desc"></i>
               </div>
               <div class='up-form inv'>
-                {% jfu 'meeting/material_edit.html' 'jfu_upload' proposal_id 'fileupload' 'Titulný' %}
+                 <input class='form-control' type='text' />
               </div>
             </li>
           {% endfor %}
@@ -103,18 +103,7 @@
       <div class='col-md-6'>
         <h4>Program zasadnutia</h4>
         <ol id="sortable2" class="connectedSortable">
-            {% for proposal in assigned_proposals %}
-              <li class="ui-state-default" data-id="{{ proposal.id.hex }}">
-                {{ proposal.name }}
-                <div class='visibility'>
-                  <i class="fa fa-sort-desc"></i>
-                </div>
-                <div class='up-form inv'>
-                  {% jfu 'meeting/material_edit.html' 'jfu_upload' proposal_id 'fileupload' 'Titulný list' %}
-                </div>
-              </li>
-            {% endfor %}
-        </ul>
+        </ol>
       </div>
     {% else %}
       <p>Neexistujú žiadne materiály na priradenie</p>

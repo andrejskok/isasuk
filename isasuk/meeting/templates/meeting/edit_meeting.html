@@ -4,16 +4,17 @@
 {% block navigation %}
     {% include 'navigation.html' %}
 {% endblock%}
+{% load jfutags %}
+
 
 {% block content %}
-    <script src="{% static 'js/edit_meeting.js'%}"></script>
     <style>
-    #sortable1, #sortable2 {
+       #sortable1, #sortable2 {
       border: 1px solid #eee;
-      width: 470px;
+      width: 100%;
       min-height: 40px;
       margin: 0;
-      padding: 5px 0 0 0;
+      padding: 5px 0 50px 0;
       float: left;
       border-radius: 5px;
       margin-right: 10px;
@@ -35,49 +36,110 @@
     }
 
     #sortable1 li {
-      width: 450px;
+      width: 98%;
     }
 
-     #sortable2 li {
-      width: 420px;
-     }
+    #sortable1 .visibility {
+      display: none;
+    }
 
-    #sortable2 li span {
+    #sortable2 .visibility {
+      display: block;
+      position: relative;
+      float: right;
+    }
+
+    #sortable2 li {
+      width: 95%;
+    }
+
+    .up-form {
+       display: none;
+    }
+
+    #sortable1 .v {
+      display: none;
+    }
+
+    #sortable1 .inv {
+      display: none;
+    }
+
+
+    #sortable2 .v {
+      display: block;
+    }
+
+    #sortable2 .inv {
+      display: none;
+    }
+
+    #sortable2 li span { 
       position: absolute;
       margin-left: -1.3em;
     }
     </style>
     <div class='row'>
-      <h3>{{ meeting.title }}</h3>
-      <h4>{{ meeting.date }}</h4>
-      {% if proposals or assigned_proposals %}
-      <div class='col-md-6'>
-        <input type='hidden' id="csrf" value='{{ csrf_token }}' />
-        <input type='hidden' id="meeting_id" value='{{ meeting.id.hex }}' />
-        <h4>Pridelené materiály</h4>
-        <ul id="sortable1" class="connectedSortable">
-          {% for proposal in proposals %}
-            <li class="ui-state-default" data-id="{{ proposal.id.hex }}">{{ proposal.name }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-      <div class='col-md-6'>
-        <h4>Program zasadnutia</h4>
-        <ol id="sortable2" class="connectedSortable">
-            {% for proposal in assigned_proposals %}
-              <li class="ui-state-default" data-id="{{ proposal.id.hex }}">{{ proposal.name }}</li>
+      <div class='col-lg-12'>
+        <h3>{{ meeting.title }}</h3>
+        <h4>{{ meeting.date }}</h4>
+        {% if proposals or assigned_proposals %}
+        <div class='col-lg-6'>
+          <input type='hidden' id="csrf" value='{{ csrf_token }}' />
+          <input type='hidden' id="meeting_id" value='{{ meeting.id.hex }}' />
+          <h4>Pridelené materiály</h4>
+          <ul id="sortable1" class="connectedSortable">
+            {% for proposal in proposals %}
+              <li class="ui-state-default" data-id="{{ proposal.id.hex }}">
+                <strong>{{ proposal.name }}</strong>
+                <div class='visibility'>
+                  <i class="fa fa-sort-desc"></i>
+                </div>
+                <div class='up-form inv'>
+                   <input class='form-control' type='text' />
+                </div>
+              </li>
             {% endfor %}
-        </ul>
+          </ul>
+        </div>
+        <div class='col-lg-6'>
+          <h4>Program zasadnutia</h4>
+          <ol id="sortable2" class="connectedSortable">
+              {% for proposal in assigned_proposals %}
+                {% if proposal.proposal %}
+                <li class="ui-state-default" data-id="{{ proposal.proposal.id.hex }}">
+                  <strong>{{ proposal.proposal.name }}</strong>
+                  <div class='visibility'>
+                    <i class="fa fa-sort-desc"></i>
+                  </div>
+                  <div class='up-form inv'>
+                      <input class='form-control' type='text' value='{{proposal.name}}'/>
+                  </div>
+                </li>
+                {% else %}
+                  <li class='ui-state-default' data-id='generic'>
+                  Názov<br><input class='form-control' type='text' value='{{proposal.name}}' />
+                  </li>
+                {% endif %}
+              {% endfor %}
+          </ol>
+          <button style='margin-top:10px' class='btn btn-success' id='add_field'> <i class="fa fa-plus"></i> Pridať vlastný bod programu</button>
+        </div>
+      {% else %}
+        <p>Neexistujú žiadne materiály na priradenie</p>
+      {% endif %}
       </div>
-    {% else %}
-      <p>Neexistujú žiadne materiály na priradenie</p>
-    {% endif %}
-    </div>
+    </div> 
     {% if proposals or assigned_proposals %}
+      <hr>
       <div class='row'>
-          <button id="save-btn" class="btn btn-default">Uložiť</button>
+          <div class='col-md-12'>
+              <button id="save-btn" class="btn btn-success">Uložiť program</button>
+          </div>
       </div>
     {% endif %}
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="{% static 'js/edit_meeting.js'%}"></script>
 {% endblock %}
 
 {% block footer %}

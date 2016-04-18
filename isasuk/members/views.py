@@ -7,7 +7,7 @@ from django.db.models import Count
 from isasuk.accounts.models import Details
 from isasuk.upload.models import File, Proposal
 from isasuk.members.models import Group, AdhocGroup
-from .forms import UserForm, AddUserForm
+from .forms import UserForm, AddUserForm, AddLeaderForm, titles_after, titles_before
 from ..meeting.models import Meeting
 from .models import Attendance
 import pprint
@@ -65,7 +65,6 @@ def members_view(request):
         successfull_user_edit = False
         userform = UserForm()
         if 'add_user' in request.POST:
-            print('aaaa')
             userform = UserForm(request.POST)
             if userform.is_valid():
                 id = add_user(request.POST)
@@ -91,6 +90,8 @@ def members_view(request):
           'successfull_user_edit': successfull_user_edit,
           'successfull_user_removal': successfull_user_removal,
           'successfull_user_addition': successfull_user_addition,
+          'titles_after': titles_after,
+          'titles_before': titles_before,
         },
         context_instance=RequestContext(request)
     )
@@ -98,6 +99,9 @@ def members_view(request):
 
 def groups_view(request, group_name=None):
     names = [i[0] for i in group_names]
+    form = AddUserForm(group_name=group_name)
+    leader_form = AddLeaderForm(group_name=group_name)
+    error = None
     if group_name not in names:
       return redirect('/members/groups/financna/')
     if request.user.details.role == 'member':
@@ -122,14 +126,29 @@ def groups_view(request, group_name=None):
     )
     elif request.user.details.role == 'admin':
         if 'add_user' in request.POST:
-          add_user_to_group(request.POST.get('users'), group_name)
+          form = AddUserForm(request.POST, group_name=group_name)
+          if form.is_valid():
+            add_user = add_user_to_group(request.POST.get('users'), request.POST.get('start'), request.POST.get('end'), group_name)
+            if add_user:
+              form = AddUserForm(group_name=group_name)
+              leader_form = AddLeaderForm(group_name=group_name)
+            else:
+              error = 'Používateľ je už predsedom komisie'
         if 'add_leader' in request.POST:
-          add_leader_to_group(request.POST.get('users'), group_name)
+          leader_form = AddLeaderForm(request.POST, group_name=group_name)
+          if leader_form.is_valid():
+            add_leader = add_leader_to_group(request.POST.get('users'), request.POST.get('start_leader'), request.POST.get('end_leader'), group_name)
+            if add_leader:
+              form = AddUserForm(group_name=group_name)
+              leader_form = AddLeaderForm(group_name=group_name)
         if 'remove' in request.POST:
           remove_user_from_group(request.POST.get('id'), group_name)
+          form = AddUserForm(group_name=group_name)
+          leader_form = AddLeaderForm(group_name=group_name)
         if 'remove_leader' in request.POST:
           remove_leader_from_group(request.POST.get('id'), group_name)
-
+          form = AddUserForm(group_name=group_name)
+          leader_form = AddLeaderForm(group_name=group_name)
         group_members =  Group.objects.filter(group_name=group_name).exclude(is_chair=True)
         group_leader =  Group.objects.filter(group_name=group_name).filter(is_chair=True)
 
@@ -146,7 +165,9 @@ def groups_view(request, group_name=None):
           'group_name': group_name,
           'group_names': group_names,
           'display_name': group_display[group_name],
-          'form': AddUserForm(),
+          'leader_form': leader_form,
+          'form': form,
+          'error': error,
         },
         context_instance=RequestContext(request)
     )
@@ -193,6 +214,9 @@ def add_user(data):
         role = 'member',
         start = data['start'],
         end = data['end'],
+        faculty = data['faculty'],
+        title_before = data['title_before'],
+        title_after = data['title_after'],
         is_student = check_boolean_field(data, 'is_student'),
         is_member = check_boolean_field(data, 'is_member'),
         can_submit = check_boolean_field(data, 'can_submit'),
@@ -206,6 +230,8 @@ def edit_user(request):
   data = request.POST
   user = User.objects.get(id=data['id'])
   details = user.details
+  details.title_before = data['title_before']
+  details.title_after =data['title_after']
   details.is_student = check_boolean_field(data, 'is_student')
   details.is_member = check_boolean_field(data, 'is_member')
   details.can_submit = check_boolean_field(data, 'can_submit')
@@ -222,28 +248,34 @@ def remove_user(id):
     user.details.is_active = False
     user.details.save()
 
-def add_user_to_group(id, group):
+def add_user_to_group(id, start, end, group):
     present = Group.objects.filter(group_name=group).filter(member=id)
     if len(present) > 0:
-      return 
+      return None
     group = Group(
       member=User.objects.get(id=id),
       group_name=group,
+      start=start,
+      end=end,
       is_chair=False,
     )
     group.save()
+    return group
 
 def remove_user_from_group(id, group):
     Group.objects.filter(group_name=group).filter(member=id).delete()
 
 
-def add_leader_to_group(id, group):
+def add_leader_to_group(id, start, end, group):
     leader = Group.objects.filter(group_name=group).filter(member=id)
     if len(leader) == 0:
-      add_user_to_group(id, group)
+      add_user_to_group(id, start, end, group)
     leader = Group.objects.filter(group_name=group).get(member=id)
     leader.is_chair = True
+    leader.start = start
+    leader.end = end
     leader.save()
+    return leader
 
 def remove_leader_from_group(id, group):
     Group.objects.filter(group_name=group).get(member=id).delete()

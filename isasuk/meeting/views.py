@@ -23,7 +23,7 @@ import datetime, json, os, webodt, time
 def meeting_view(request, id):
    meeting = Meeting.objects.get(id=id)
    meeting_materials = []
-   assigned_ids = MeetingsToMaterials.objects.filter(meeting=id).order_by('order')
+   assigned_ids = MeetingsToMaterials.objects.filter(meeting=id).exclude(proposal__isnull=True).order_by('order')
    for assignement in assigned_ids:
      proposal = Proposal.objects.get(id=assignement.proposal_id)
      meeting_materials.append({
@@ -52,14 +52,7 @@ def add_meeting_view(request):
         proposal_ids = Assignement.objects.filter(group_name=meeting.group)
         ids = [assignement.proposal_id for assignement in proposal_ids]
         proposals = Proposal.objects.filter(id__in = ids)
-        return render_to_response(
-          'meeting/add_program.html',
-          {
-              'meeting': meeting,
-              'proposals': proposals,
-          },
-          context_instance=RequestContext(request)
-          )
+        return redirect('/meeting/edit_meeting/' + meeting.id.hex)
     return render_to_response(
       'meeting/add_meeting.html',
       {
@@ -107,7 +100,7 @@ def edit_meeting_view(request, id):
   meeting = Meeting.objects.get(id=id)
   proposal_ids = Assignement.objects.filter(group_name=meeting.group)
   assigned_proposal_ids = MeetingsToMaterials.objects.filter(meeting__id=id).order_by('order')
-  assigned_ids = [assignement.proposal.id.hex for assignement in assigned_proposal_ids]
+  assigned_ids = [assignement.proposal.id.hex for assignement in assigned_proposal_ids if assignement.proposal]
   ids = [assignement.proposal_id for assignement in proposal_ids if assignement.proposal_id not in assigned_ids]
   proposals = Proposal.objects.filter(id__in = ids)
   assigned_proposals = []
@@ -118,7 +111,7 @@ def edit_meeting_view(request, id):
     {
      'meeting': meeting,
      'proposals': proposals,
-     'assigned_proposals': assigned_proposals,
+     'assigned_proposals': assigned_proposal_ids,
     },
     context_instance=RequestContext(request)
   )
@@ -126,17 +119,26 @@ def edit_meeting_view(request, id):
 def save_meeting_program(request):
   data = request.POST
   ids = json.loads(data.get('ids'))
+  names = json.loads(data.get('names'))
   meeting_id = request.POST.get('meeting_id')
   MeetingsToMaterials.objects.filter(meeting__id=meeting_id).delete()
   index = 0
   for id in ids:
-     meeting_assignement = MeetingsToMaterials(
-        meeting=Meeting.objects.get(id=meeting_id),
-        proposal=Proposal.objects.get(id=id),
-        order=index,
+    if id == 'generic':
+        meeting_assignement = MeetingsToMaterials(
+            meeting=Meeting.objects.get(id=meeting_id),
+            order=index,
+            name=names[index]
         )
-     meeting_assignement.save()
-     index += 1
+    else:
+       meeting_assignement = MeetingsToMaterials(
+          meeting=Meeting.objects.get(id=meeting_id),
+          proposal=Proposal.objects.get(id=id),
+          order=index,
+          name=names[index]
+          )
+    meeting_assignement.save()
+    index += 1
   template = webodt.ODFTemplate('program.odt')
   context = {
     'program': compose_program(meeting_id)
@@ -183,7 +185,7 @@ def upload_invitation_view(request, id):
 
 def close_meeting_view(request, id):
   meeting = Meeting.objects.get(id=id)
-  proposals = MeetingsToMaterials.objects.filter(meeting__id=id)
+  proposals = MeetingsToMaterials.objects.filter(meeting__id=id).exclude(proposal__isnull=True)
   attendance = Attendance.objects.filter(meeting__id=id).order_by('user__last_name')
   no_conclusion = False
   saved = False
@@ -192,7 +194,7 @@ def close_meeting_view(request, id):
       save_attendance(request.POST, id)
       meeting.closed = True
       meeting.save()
-      all_materials_assigned = MeetingsToMaterials.objects.filter(meeting=meeting)
+      all_materials_assigned = MeetingsToMaterials.objects.filter(meeting=meeting).exclude(proposal__isnull=True)
       for material in all_materials_assigned:
         if meeting.group == 'asuk' and material.proposal.state != 'finished':
           material.proposal.state = 'finished'
@@ -231,7 +233,7 @@ def save_attendance(data, id):
 
 def add_meeting(creator, title, date, group):
   date = datetime.datetime.strptime(date, '%d/%m/%Y %H:%M').strftime('%Y-%m-%d %H:%M')
-  meeting = Meeting(title=title, date=date, group=group, creator=creator, state='initial')
+  meeting = Meeting(title=title, date=date, group=group, creator=creator, state='created')
   meeting.save()
   members = Group.objects.filter(group_name=group)
   for member in members:
@@ -291,7 +293,7 @@ def upload_conclusion_to_material( request ):
     instance.save()
     convert_file(instance)
     basename = os.path.basename( instance.file.path )
-    meeting = MeetingsToMaterials.objects.get(id=meeting_id) 
+    meeting = MeetingsToMaterials.objects.get(id=meeting_id).exclude(proposal__isnull=True)
     meeting.conclusion = instance
     meeting.save()
 
@@ -344,7 +346,9 @@ def compose_program(meeting_id):
     ans = ""
     index = 1
     for proposal in proposals:
-      print(proposal.proposal.name)
-      ans +=  str(index) + "." + " " + proposal.proposal.name + "\n"
+      if proposal.proposal:
+        ans +=  str(index) + "." + " " + proposal.proposal.name + "\n"
+      else:
+        ans +=  str(index) + "." + " " + proposal.name + "\n"
       index += 1
     return ans

@@ -27,7 +27,26 @@
             <div class="row">
                 <div class='col-sm-3'>
                     <div class="form-group">
+                        {{ userform.title_before|bootstrap }}
+                    </div>
+                </div>
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.title_after|bootstrap }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class='col-sm-3'>
+                    <div class="form-group">
                         {{ userform.email|bootstrap }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class='col-sm-3'>
+                    <div class="form-group">
+                        {{ userform.faculty|bootstrap }}
                     </div>
                 </div>
             </div>

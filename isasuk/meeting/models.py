@@ -18,10 +18,15 @@ class Meeting(models.Model):
 class MeetingsToMaterials(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     meeting = models.ForeignKey(Meeting)
-    proposal = models.ForeignKey(Proposal)
+    proposal = models.ForeignKey(Proposal, blank=True, null=True,)
     title = models.ForeignKey(File, blank=True, null=True)
     conclusion = models.ForeignKey(File, blank=True, null=True, related_name='m2m_conclusion')
     name = models.CharField(max_length=80)
     order = models.IntegerField()
     timestamp = models.DateTimeField(auto_now_add=True)
+
+class Event(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=80)
+    date = models.DateTimeField()
 

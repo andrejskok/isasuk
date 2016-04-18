@@ -40,6 +40,11 @@
         <td>{{ meeting.date }}</td>
         <td>
           <div class='row'>
+            {% if not meeting.invitation %}
+            <div class='col-md-3'>
+              <a class='btn btn-success' href='{% url "upload_invitation" id=meeting.id.hex %}'>Odoslať pozvánku</a>
+            </div>
+            {% endif %}
             <div class='col-md-3'>
               <a class='btn btn-success' href='{% url "edit_meeting" id=meeting.id.hex %}'>Upraviť</a>
             </div>

@@ -1,4 +1,5 @@
 {% extends 'members/main.html' %}
+{% load staticfiles %}
 {% load bootstrap %}
 
 {% block data %}
@@ -32,6 +33,12 @@
                 Email
               </td>
               <td>
+                Mandát od
+              </td>
+              <td>
+                Mandát do
+              </td>
+              <td>
                 Info
               </td>
             </tr>
@@ -43,6 +50,12 @@
             </td>
             <td>
               {{ group_leader.member.email }}
+            </td>
+            <td>
+              {{ group_leader.start }}
+            </td>
+            <td>
+              {{ group_leader.end }}
             </td>
             </tr>
           </tbody>
@@ -64,6 +77,12 @@
               Email
             </td>
             <td>
+              Mandát od
+            </td>
+            <td>
+              Mandát do
+            </td>
+            <td>
               Info
             </td>
           </tr>
@@ -76,6 +95,12 @@
             </td>
             <td>
               {{ group.member.email }}
+            </td>
+            <td>
+              {{ group.start }}
+            </td>
+            <td>
+              {{ group.end }}
             </td>
           </tr>
       {% endfor %}

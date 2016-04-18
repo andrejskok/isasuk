@@ -23,12 +23,15 @@
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Členovia<span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="{% url 'members' %}">Zoznam členov</a></li>
-            <li><a href="{% url 'attendance' %}">Dochádzka</a></li>
             <li><a href="{% url 'groups' %}">Komisie</a></li>
+            <li><a href="{% url 'attendance' %}">Dochádzka</a></li>
           </ul>
         </li>
         <li><a href="{% url 'my_meetings' %}">Moje zasadnutia</a></li>
         <li><a href="{% url 'archive' %}">Archív</a></li>
+        <li><a href="{% url 'senate_docs' %}">Dokumenty k senátu</a></li>
+      </ul>
+      <ul class="nav navbar-nav pull-right">
         <li><a href="{% url 'logout' %}">Odhlásiť sa</a></li>
       </ul>
     </div>

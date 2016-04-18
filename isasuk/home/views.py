@@ -30,7 +30,7 @@ def home_view_admin(request, meeting_id):
       })
     meeting_materials = []
     if meeting:
-      assigned_ids = MeetingsToMaterials.objects.filter(meeting=meeting.id.hex).order_by('order')
+      assigned_ids = MeetingsToMaterials.objects.filter(meeting=meeting.id.hex).exclude(proposal__isnull=True).order_by('order')
       for assignement in assigned_ids:
         proposal = Proposal.objects.get(id=assignement.proposal_id)
         meeting_materials.append({
@@ -67,7 +67,7 @@ def home_view_member(request, meeting_id):
       })
     meeting_materials = []
     if meeting:
-      assigned_ids = MeetingsToMaterials.objects.filter(meeting=meeting.id.hex).order_by('order')
+      assigned_ids = MeetingsToMaterials.objects.filter(meeting=meeting.id.hex).exclude(proposal__isnull=True).order_by('order')
       for assignement in assigned_ids:
         proposal = Proposal.objects.get(id=assignement.proposal_id)
         meeting_materials.append({

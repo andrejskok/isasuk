@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% load staticfiles %}
+{% load bootstrap %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
@@ -9,15 +10,62 @@
 <link href="{% static 'css/fullcalendar.css' %}" rel="stylesheet">
 <script src="{% static 'js/moment.min.js' %}"></script>
 <script src="{% static 'js/fullcalendar.js' %}"></script>
-<script>
-$(document).ready(function() {
-    $('#calendar_container').fullCalendar({
-      events: '/calendar/events',
-    })
-});
-</script>
-<div id='calendar_container'>
+<script src="{% static 'js/lang/sk.js' %}"></script>
+<script src="{% static 'js/calendar_events.js' %}"></script>
+
+{% if role == 'admin' %}
+<div class='row'>
+  <div class='col-md-4'>
+    <h2 style='margin-top:0px'>Pridať udalosť</h2>
+    <div class='col-md-12'>
+      <form action='' method='POST'>
+        {% csrf_token %}
+           <div class="row">
+                   <div class="form-group">
+                       {{ form.title|bootstrap }}
+                   </div>
+           </div>
+           <div class="row">
+                   <div class="form-group">
+                       {{ form.date|bootstrap }}
+                   </div>
+           </div>
+           <div class="row">
+               <input type='submit' class='btn btn-success' name='add' value='Uložiť'>
+            </div>
+        </form>
+      {% for event in events %}
+        <hr>
+        <div class='row'>
+          <div class='col-md-8'>
+          {{ event.title }}<br>
+          {{ event.date }}
+          </div>
+          <div class='col-md-4'>
+            <form action='' method='POST'>
+              {% csrf_token %}
+              <input type='hidden' value='{{ event.id }}' name='id'/>
+              <input type='submit' value='Vymazať' name='delete' class='btn btn-danger'/>
+            </form>
+          </div>
+        </div>
+      {% empty %}
+        <hr>
+        <div class='row'>
+          Momentálne niesú nastavené žiadne udalosti
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class='col-md-8'>
+    <div id='calendar_container'>
+    </div>
+  </div>
 </div>
+{% else %}
+  <div id='calendar_container'>
+  </div>
+{% endif %}
 {% endblock %}
 
 {% block footer %}

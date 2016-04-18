@@ -11,7 +11,8 @@ from .models import Assignement, Objection, Report, History
 from ..meeting.models import MeetingsToMaterials, Meeting
 from jfu.http import upload_receive, UploadResponse, JFUResponse
 
-from ..common.helpers import handle_uploaded_file, convert_file, convert_to_pdf, getFilename
+from ..upload.forms import choices
+from ..common.helpers import handle_uploaded_file, convert_file, convert_to_pdf, getFilename, get_proposal_files, rename_and_save
 import os, sys, subprocess, time, json
 
 group_names = [
@@ -24,6 +25,7 @@ group_names = [
   ('pravna', 'Právna komisia'),
   ('internaty', 'Komisia pre internáty a ubytovanie'),
   ('mandatova', 'Mandátová komisia'),
+  ('studentska', 'Študenstká časť AS UK'),
 ]
 
 def negotiation_view(request):
@@ -113,6 +115,9 @@ def assign_view(request, id):
     for file in files['attachment']:
         name = request.POST.get(file.id.hex)
         rename_and_save(file, name)
+    category = request.POST.getlist('category')
+    proposal.category = category
+    proposal.save()
     groups = request.POST.getlist('comission')
     main_group = request.POST.get('gestor')
     for group in groups:
@@ -132,6 +137,7 @@ def assign_view(request, id):
       'proposal': proposal,
       'files': files,
       'comissions': group_names,
+      'choices': choices,
       },
       context_instance=RequestContext(request)
     )
@@ -144,7 +150,7 @@ def report_view(request, id):
     proposal.state = 'reported'
     proposal.save()
     reason = request.POST.get('reason')
-    report = Report(reason=reason)
+    report = Report(reason=reason, proposal_id=id)
     report.save()
     return render_to_response(
       'negotiation/negotiation_assign_success.html',

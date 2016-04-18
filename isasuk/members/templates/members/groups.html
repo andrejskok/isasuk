@@ -1,4 +1,5 @@
 {% extends 'members/main.html' %}
+{% load staticfiles %}
 {% load bootstrap %}
 
 {% block data %}
@@ -32,6 +33,12 @@
                 Email
               </td>
               <td>
+                Mandát od
+              </td>
+              <td>
+                Mandát do
+              </td>
+              <td>
                 Info
               </td>
             </tr>
@@ -43,6 +50,12 @@
             </td>
             <td>
               {{ group_leader.member.email }}
+            </td>
+            <td>
+              {{ group_leader.start }}
+            </td>
+            <td>
+              {{ group_leader.end }}
             </td>
             {% if user.details.role == 'admin' %}
             <td>
@@ -61,7 +74,25 @@
             <td>
               <form method='POST' action='{% url "groups" %}{{ group_name }}/'>
                   {% csrf_token %}
-                  {{ form|bootstrap }}
+                  <div class="row">
+                      <div class='col-sm-6'>
+                          <div class="form-group">
+                              {{ leader_form.users|bootstrap }}
+                          </div>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <div class='col-sm-3'>
+                          <div class="form-group" id='leader_start'>
+                              {{ leader_form.start_leader|bootstrap }}
+                          </div>
+                      </div>
+                      <div class='col-sm-3'>
+                          <div class="form-group" id='leader_end'>
+                              {{ leader_form.end_leader|bootstrap }}
+                          </div>
+                      </div>
+                  </div>
                   <button type='submit' class='btn btn-success' name='add_leader'>Zvoliť predsedu</button>
               </form>
             </td>
@@ -81,6 +112,12 @@
               Email
             </td>
             <td>
+              Mandát od
+            </td>
+            <td>
+              Mandát do
+            </td>
+            <td>
               Info
             </td>
           </tr>
@@ -93,6 +130,12 @@
             </td>
             <td>
               {{ group.member.email }}
+            </td>
+            <td>
+              {{ group.start }}
+            </td>
+            <td>
+              {{ group.end }}
             </td>
             {% if user.details.role == 'admin' %}
             <td>
@@ -111,15 +154,34 @@
       <p>Komisia nemá v súčasnosti žiadnych členov.</p>
     {% endif %}
     <h4>Pridať člena</h4>
-    <div class='col-md-4'>
+    <div>
       <form method='POST' action='{% url "groups" %}{{ group_name }}/'>
           {% csrf_token %}
-          {{ form|bootstrap }}
+          <div class="row">
+              <div class='col-sm-6'>
+                  <div class="form-group">
+                      {{ form.users|bootstrap }}
+                  </div>
+              </div>
+          </div>
+          <div class="row">
+              <div class='col-sm-3'>
+                  <div class="form-group" id='group_start'>
+                      {{ form.start|bootstrap }}
+                  </div>
+              </div>
+              <div class='col-sm-3'>
+                  <div class="form-group" id='group_end'>
+                      {{ form.end|bootstrap }}
+                  </div>
+              </div>
+          </div>
           <button type='submit' class='btn btn-success' name='add_user'>Pridať</button>
       </form>
     </div>
     </div>
   </div>
+  <script src="{% static "js/groups.js" %}"></script>
 </div>
 
 {% endblock %}

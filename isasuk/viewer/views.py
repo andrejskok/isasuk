@@ -53,3 +53,9 @@ def file_view(request, file_id):
         },
         context_instance=RequestContext(request)
     )
+
+def view_senate_docs(request):
+    return render_to_response(
+        'viewer/senate_docs.html',
+        context_instance=RequestContext(request)
+    )
