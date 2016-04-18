@@ -54,19 +54,19 @@ def convert_file(file_instance):
               break
           except:
                  print("Oops! Problem occured.  Try again...")
-      iterate = True
-      while iterate:
-          p2 = subprocess.Popen("pdf2htmlEX " + "'isasuk/static/storage/docs/" + str(file_instance.id.hex) + "/" + ('.').join(file_instance.name.split('.')[:-1]) + ".pdf'" + " 'isasuk/static/storage/docs/" + str(file_instance.id.hex) + "/" + ('.').join(file_instance.name.split('.')[:-1]) + ".html'", shell=True, bufsize=1, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
-          for line in p2.stderr:
-              print(line)
-              if line.startswith(b'I/O Error') or line.startswith(b'Error'):
-                print("Trying again....")
-              else:
-                p2.wait()
-                iterate = False
-                break
-      file_instance.save()
-      return str(file_instance.id)
+    iterate = True
+    while iterate:
+        p2 = subprocess.Popen("pdf2htmlEX " + "'isasuk/static/storage/docs/" + str(file_instance.id.hex) + "/" + ('.').join(file_instance.name.split('.')[:-1]) + ".pdf'" + " 'isasuk/static/storage/docs/" + str(file_instance.id.hex) + "/" + ('.').join(file_instance.name.split('.')[:-1]) + ".html'", shell=True, bufsize=1, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
+        for line in p2.stderr:
+            print(line)
+            if line.startswith(b'I/O Error') or line.startswith(b'Error'):
+              print("Trying again....")
+            else:
+              p2.wait()
+              iterate = False
+              break
+    file_instance.save()
+    return str(file_instance.id)
 
 def convert_to_pdf(file_name):
     path = settings.BASE_DIR + '/isasuk/media/' + file_name
@@ -126,18 +126,18 @@ def handle_uploaded_file(request, f, file_id, file_type):
              break
          except:
               print("Oops! Problem occured.  Try again...")
-     iterate = True
-     while iterate:
-         p2 = subprocess.Popen("pdf2htmlEX " + "'isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".pdf'" + " 'isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".html'", shell=True, bufsize=1, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
-         print('here')
-         for line in p2.stderr:
-             print(line)
-             if line.startswith(b'I/O Error') or line.startswith(b'Error'):
-               print("Trying again....")
-             else:
-               p2.wait()
-               iterate = False
-               break
-     file_instance.save()
-     return str(file_instance.id)
+   iterate = True
+   while iterate:
+       p2 = subprocess.Popen("pdf2htmlEX " + "'isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".pdf'" + " 'isasuk/static/storage/docs/" + str(file_instance.id) + "/" + ('.').join(f.name.split('.')[:-1]) + ".html'", shell=True, bufsize=1, stdout=subprocess.PIPE, stderr = subprocess.PIPE)
+       print('here')
+       for line in p2.stderr:
+           print(line)
+           if line.startswith(b'I/O Error') or line.startswith(b'Error'):
+             print("Trying again....")
+           else:
+             p2.wait()
+             iterate = False
+             break
+   file_instance.save()
+   return str(file_instance.id)
                                    
