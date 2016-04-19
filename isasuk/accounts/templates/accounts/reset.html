@@ -1,0 +1,25 @@
+{% extends 'index.html' %}
+{% load bootstrap %}
+
+{% block content %}
+<div class='row'>
+    <div class='col-md-6'>
+    <h3>Zadajte email pre obnovu hesla</h3>
+        <form method='POST' action=''>
+          {% csrf_token %}
+           <label class="control-label" for="email">Email</label>
+           <input class='form-control' type='email' name='email'/>
+         {% if send %}
+          <br>
+          <p>Email s obnovou hesla bol úspešne odoslaný</p>
+         {% endif %}
+         <br>
+          <input type='submit' class='btn btn-success' name='submit' value='Odoslať'/>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}

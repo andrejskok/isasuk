@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import uuid
 
 class Details(models.Model):
     user = models.OneToOneField(User)
@@ -14,3 +15,10 @@ class Details(models.Model):
     is_chair = models.BooleanField()
     can_submit = models.BooleanField()
     is_active = models.BooleanField()
+
+
+class Recovery(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user_id = models.CharField(max_length=100)
+    timestamp = models.DateTimeField(auto_now_add=True)
+

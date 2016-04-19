@@ -4,16 +4,22 @@
 {% block content %}
 <div class='row'>
     <div class='col-md-4'>
-    <h1>Prihlásenie</h1>
+    <h1>Vitajte v IS AS UK</h1>
+    <h3>Prihlásenie</h3>
         <form method='POST' action='{% url "login" %}'>
           {% csrf_token %}
           {{form|bootstrap}}
-         <input type='submit' class='btn btn-success' name='submit' value='Submit'/>
+          {% if error %}
+            <div class="form-group has-error">
+                <span class="help-block">Nesprávne prihlasovacie údaje</span>
+            </div>
+          {% endif %}
+         <input type='submit' class='btn btn-success' name='submit' value='Prihlásiť'/>
         </form>
     </div>
 </div>
-<div>
-  <a>Zabudnuté heslo?</a>
+<div style='padding-top:20px'>
+  <a href='/accounts/reset/'>Zabudnuté heslo?</a>
 </div>
 {% endblock %}
 

@@ -37,13 +37,13 @@ group_display = {
   'mandatova': 'Mandátová komisia',
 }
 
-def send_verification_email(id, email):
-    url = 'localhost:8000/members/verify/' + str(id)
+def send_verification_email(request, id, email):
+    url = request.META['HTTP_ORIGIN'] + '/members/verify/' + str(id)
     message = {
           'from_email': 'registracia@sportrank.sk',
           'from_name': 'IS AS UK',
           'to': [{'email': email}],
-          'html': 'Vitajte v systeme<a>' + url + '</a>',
+          'html': 'Vitajte v systéme IS AS UK<br> Pre nastavenie hesla kliknite na tento link: <a href="' + url + '">' + url + '</a>',
       }
     mandrill_client.messages.send(message=message)
 
@@ -68,7 +68,7 @@ def members_view(request):
             userform = UserForm(request.POST)
             if userform.is_valid():
                 id = add_user(request.POST)
-                send_verification_email(id, request.POST.get('email'))
+                send_verification_email(request, id, request.POST.get('email'))
                 successfull_user_addition = True
                 userform = UserForm()
             else:

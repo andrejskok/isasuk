@@ -50,8 +50,8 @@ def generator_view(request):
             template = webodt.ODFTemplate(templates.get(request.POST.get('select_pattern')))
             context = get_context_data(request.POST, request.POST.get('select_pattern'))
             document = template.render(Context(context))
-            name = convert_to_pdf(document.file.name.split('\\')[-1])
-            link = getFilename(document.file.name.split('\\')[-1]) + '.pdf'
+            name = convert_to_pdf(document.file.name.split('/')[-1])
+            link = getFilename(document.file.name.split('/')[-1]) + '.pdf'
             proposal_id = request.POST.get('proposal_id')
     elif 'save' in request.POST:
         proposal_id = request.POST.get('proposal_id')
@@ -173,7 +173,7 @@ def download_file(request, filename):
 def download_original(request, id):
     file_instance = File.objects.get(id=id)
     file = open(file_instance.file.path, 'rb')
-    filename = file_instance.file.path.split('\\')[-1]
+    filename = file_instance.file.path.split('/')[-1]
     response = HttpResponse(file, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="%s"' % filename
     return response
@@ -181,7 +181,7 @@ def download_original(request, id):
 def download_pdf(request, id):
     file_instance = File.objects.get(id=id)
     name = getFilename(file_instance.file.path)
-    filename = name.split('\\')[-1] + '.pdf'
+    filename = name.split('/')[-1] + '.pdf'
     file = open(name + '.pdf', 'rb')
     response = HttpResponse(file, content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename="%s"' % filename
