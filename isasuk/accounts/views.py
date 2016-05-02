@@ -2,11 +2,14 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.shortcuts import redirect
 from django.http import Http404
+from django.db import transaction
 
 from django.contrib.auth import views
 from django.contrib.auth import logout, login
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 
 from .models import Recovery
 from .forms import *
@@ -18,13 +21,9 @@ mandrill_client = mandrill.Mandrill('vWEYy5TI1BFYISDBXOIJyA')
 
 def send_reset_email(request, id, email):
     url = request.META['HTTP_ORIGIN'] + '/accounts/recovery/' + str(id)
-    message = {
-          'from_email': 'registracia@sportrank.sk',
-          'from_name': 'Obnova hesla IS AS UK',
-          'to': [{'email': email}],
-          'html': 'Obnova hesla pre: <a href="' + url + '">' + url + '</a>',
-      }
-    mandrill_client.messages.send(message=message)
+    send_mail('Obnova hesla v systéme IS AS UK', '',
+                   'isasuk@sportrank.sk', [email], fail_silently=False,
+                     html_message=render_to_string('accounts/reset_email.html', {'link': url}))
 
 def login_user(request):
     if 'submit' in request.POST:
@@ -76,6 +75,7 @@ def reset_view(request):
         {'send': send},
         context_instance=RequestContext(request))
 
+@transaction.atomic
 def recovery_view(request, id):
     error = False
     if not id:

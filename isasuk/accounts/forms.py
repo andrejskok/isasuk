@@ -3,5 +3,5 @@ from django import forms
 
 
 class LoginForm(forms.Form):
-    email = forms.EmailField(label='Email', max_length=40)
+    email = forms.EmailField(label='Email', max_length=256)
     password = forms.CharField(label='Heslo', widget=forms.PasswordInput())

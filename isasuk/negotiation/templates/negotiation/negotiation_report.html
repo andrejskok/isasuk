@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% load keyvalue %}
+{% load getfullname %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
@@ -7,11 +8,14 @@
 
 {% block content %}
     <h3>Zamietnuť materiál</h3>
-    {{ proposal.name }}
+    Názov: {{ proposal.name }}<br>
+    Predložené:{{ proposal.timestamp }}<br>
+    Predkladateľ: {{proposal.creator|getfullname}}<br>
     <form method='POST' action='/negotiation/report/{{ proposal.id }}'>
       {% csrf_token %}
-        <p>Odôvodnenie</p>
+        <h4>Odôvodnenie</h4>
         <textarea name='reason' class='form-control'></textarea>
+      <br>
       <button type='submit' name='report' class='btn btn-success'>Zamietnuť</button>
     </form>
 {% endblock %}

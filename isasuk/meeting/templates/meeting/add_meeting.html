@@ -6,6 +6,12 @@
 {% endblock%}
 
 {% block content %}
+<style>
+    ul {
+        list-style-type: none;
+        padding-left:0px;
+    }
+</style>
 <div class='col-md-offset-3 col-md-6'>
   <form action='{% url "add_meeting" %}' method='POST'>
     {% csrf_token %}
@@ -22,6 +28,12 @@
     <div class="row">
             <div class="form-group">
                 {{ form.choices|bootstrap }}
+            </div>
+    </div>
+    <div class="row">
+            {{ form.invited.label_tag }}
+            <div class="form-group" style='border: 1px solid #AAA; border-radius:5px; max-height:300px; overflow-y:scroll; overflow-x: hidden; padding:10px;'>
+                {{ form.invited }}
             </div>
     </div>
     <div class="row">

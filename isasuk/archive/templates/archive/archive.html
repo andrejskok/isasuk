@@ -1,40 +1,90 @@
 {% extends 'index.html' %}
 {% load bootstrap %}
 {% load formatresult %}
+{% load formattext %}
+{% load getcategory %}
 
 {% block navigation %}
     {% include 'navigation.html' %}
 {% endblock%}
 
 {% block content %}
+<style>
+  ul {list-style-type: none;}
+</style>
 <div class='row'>
     <div class='col-md-6'>
       <h1>Vyhľadávanie v archíve</h1>
       <form method='POST' action=''>
         {% csrf_token %}
         {{ form.name|bootstrap }}
+        <div class='row' style='padding:15px'>
+          <input type="checkbox" name="docs" value="True" {% if docs %} checked {% endif %}>Vyhľadávať aj v dokumentoch<br>
+        </div>
+        {{ form.doc_type|bootstrap }}
         <input type='submit' class="btn btn-default" name='search' value='Hľadať'/>
       </form>
       </div>
 </div>
 <div class='row'>
-    <div class='col-md-12'>
-    <h1>Výsledky</h1>
-    {% if results %}
-      Nájdených {{ results|length }} výsledkov<br>
-    {% endif %}
-    {% for result in results %}
-      <div class='row' style='padding-left:15px'>
+    {% if not docs %}
+      <div class='col-md-12'>
       <hr>
-      {% autoescape off %}
-        {{ result.name|formatresult:phrase}}
-        <a class='btn btn-success' href='/viewer/{{result.id.hex}}/'><i class="fa fa-search"></i></a>
-      {% endautoescape %}
+      {% if results %}
+        Nájdených {{ results|length }} výsledkov<br>
+      {% endif %}
+      {% for result in results %}
+        <div class='row' style='padding-left:15px'>
+        <hr>
+        {% autoescape off %}
+            {% if search %}
+            <div class='col-md-3'>{{ result.name|formatresult:phrase}}</div>
+            {% else %}
+            <div class='col-md-3'>{{ result.name}}</div>
+            {% endif %}
+          <div class='col-md-2'><a class='btn btn-success' href='/viewer/{{result.id.hex}}/'><i class="fa fa-search"></i></a></div>
+        {% endautoescape %}
+        </div>
+      {% empty %}
+        Pre zadaný výraz neexistujú výsledky v materiáloch
+      {% endfor %}
       </div>
-    {% empty %}
-      Pre zadaný výraz neexistujú výsledky
-    {% endfor %}
-    </div>
+    {% else %}
+      <div class='col-md-6'>
+      <hr>
+      {% if results %}
+        Nájdených {{ results|length }} výsledkov<br>
+      {% endif %}
+      {% for result in results %}
+        <div class='row' style='padding-left:15px'>
+        <hr>
+        {% autoescape off %}
+          <div class='col-md-10'>{{ result.name|formatresult:phrase}}<br>{{ result.category|getcategory}}</div>
+          <div class='col-md-2'><a class='btn btn-success pull' href='/viewer/file/{{result.id.hex}}/'><i class="fa fa-search"></i></a></div>
+        {% endautoescape %}
+        </div>
+      {% empty %}
+        Pre zadaný výraz neexistujú výsledky
+      {% endfor %}
+      </div>
+      <div class='col-md-6'>
+      <hr>
+      {% if documents %}
+        Nájdených {{ documents|length }} výsledkov v dokumentoch<br>
+      {% endif %}
+      {% for result in documents %}
+        <div class='row' style='padding-left:15px'>
+        <hr>
+        {% autoescape off %}
+          <div class='col-md-10'>{{ result.text|formattext:phrase}}</div>
+          <div class='col-md-2'><a class='btn btn-success' href='/viewer/{{result.file.proposal_id}}/{{result.file.id.hex}}'><i class="fa fa-search"></i></a></div>
+        {% endautoescape %}
+        </div>
+      {% empty %}
+        Pre zadaný výraz neexistujú výsledky v dokumentoch
+      {% endfor %}
+      </div>
+    {% endif %}
 </div>
 {% endblock %}
 

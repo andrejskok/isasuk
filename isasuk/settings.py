@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'webodt',
 
     'isasuk',
+    'isasuk.api',
     'isasuk.accounts',
     'isasuk.negotiation',
     'isasuk.meeting',
@@ -96,12 +97,58 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'isasuk.wsgi.application'
 
+#Logging
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'isasuk.log',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers':['file'],
+            'propagate': True,
+            'level':'DEBUG',
+        },
+        'sad.account': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+    'django.request': {
+        'handlers': ['file'],
+        'level': 'DEBUG',
+    },
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'isasuk',
+        'USER': 'skoki',
+        'PASSWORD': 'askformore',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    'sqlite': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
@@ -134,3 +181,12 @@ WEBODT_CONVERTER = 'webodt.converters.abiword.AbiwordODFConverter'
 WEBODT_TEMPLATE_PATH = BASE_DIR + '/isasuk/templates'
 
 WEBODT_TMP_DIR = BASE_DIR + '/isasuk/media/'
+
+# EMAILS
+
+EMAIL_BACKEND = 'django_ses.SESBackend'
+AWS_ACCESS_KEY_ID = 'AKIAJBIUKTYB2JKXMRYQ'
+AWS_SECRET_ACCESS_KEY = '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'
+
+AWS_SES_REGION_NAME = 'eu-west-1'
+AWS_SES_REGION_ENDPOINT = 'email.eu-west-1.amazonaws.com'

@@ -70,11 +70,11 @@ class AddUserForm(forms.Form):
   start = forms.DateField(
       label=_("Mandát od"),
       widget=forms.DateInput(format = '%d/%m/%Y', attrs={'placeholder':'dd/mm/RRRR'}),
-      input_formats=('%d/%m/%Y', ))
+      input_formats=('%d/%m/%Y', ), required=False)
   end = forms.DateField(
       label=_("Mandát do"),
       widget=forms.DateInput(format = '%d/%m/%Y', attrs={'placeholder':'dd/mm/RRRR'}),
-      input_formats=('%d/%m/%Y', ))
+      input_formats=('%d/%m/%Y', ), required=False)
 
   def clean_end(self):
           if self.cleaned_data.get('start') and self.cleaned_data.get('end'):
@@ -91,21 +91,22 @@ class UserForm(forms.Form):
     faculty = forms.ChoiceField(label=_("Fakulta"), choices=faculties, required=False)
     title_before = forms.ChoiceField(label=_("Titul pred menom"), choices=titles_before, required=False)
     title_after = forms.ChoiceField(label=_("Titul za menom"), choices=titles_after, required=False)
-    email = forms.EmailField(max_length=40)
-    last_name =  forms.CharField(label=_("Priezvisko"), max_length=80)
-    first_name = forms.CharField(label=_("Krstné meno"), max_length=80)
+    email = forms.EmailField(max_length=256)
+    last_name =  forms.CharField(label=_("Priezvisko"), max_length=256)
+    first_name = forms.CharField(label=_("Krstné meno"), max_length=256)
     start = forms.DateField(
       label=_("Mandát od"),
       widget=forms.DateInput(format = '%d/%m/%Y', attrs={'placeholder':'dd/mm/RRRR'}),
-      input_formats=('%d/%m/%Y', ))
+      input_formats=('%d/%m/%Y', ), required=False)
     end = forms.DateField(
       label=_("Mandát do"),
       widget=forms.DateInput(format = '%d/%m/%Y', attrs={'placeholder':'dd/mm/RRRR'}),
-      input_formats=('%d/%m/%Y', ))
+      input_formats=('%d/%m/%Y', ), required=False)
     is_student = forms.BooleanField(label=_("Študent/Zamestnanec"), initial=False, required=False)
     is_member = forms.BooleanField(label=_("Člen AS"), initial=False, required=False)
     can_submit = forms.BooleanField(label=_("Môže predkladať"), initial=False, required=False)
     is_chair = forms.BooleanField(label=_("Člen Predsedníctva"), initial=False, required=False)
+    archive_access = forms.BooleanField(label=_("Prístup k archívu"), initial=False, required=False)
 
     def clean_end(self):
       if self.cleaned_data.get('start') and self.cleaned_data.get('end'):

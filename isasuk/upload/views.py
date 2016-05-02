@@ -9,14 +9,17 @@ from django.core.urlresolvers import reverse
 from django.utils.encoding  import smart_text
 from django.core.files import File as DjangoFile
 from django.http import Http404
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
 
 from jfu.http import upload_receive, UploadResponse, JFUResponse
 import subprocess, time, sys, os, webodt, io, zipfile
 
 import isasuk.upload.forms as uploadforms
 from .forms import *
+from ..meeting.models import MeetingsToMaterials, Invited
 from .models import File, Proposal
-from ..common.helpers import handle_uploaded_file, convert_file, convert_to_pdf, getFilename
+from ..common.helpers import convert_file, convert_to_pdf, getFilename
 
 templates = {
     'RentContractForm': 'ziadost.odt',
@@ -34,8 +37,11 @@ def get_context_data(data, form_type):
             'technical_evaluation': data.get('technical_evaluation'),
        }
 
-
+@transaction.atomic
+@login_required
 def generator_view(request):
+    if not request.user.details.can_submit:
+      return HttpResponse(status=404)
     patternform = PatternChoiceForm()
     templateform = None
     link = None
@@ -99,7 +105,11 @@ def generator_view(request):
       context_instance=RequestContext(request)
     )
 
+@transaction.atomic
+@login_required
 def upload_view(request):
+    if not request.user.details.can_submit:
+      return HttpResponse(status=404)
     uploadform = UploadForm()
     proposal_id = None
     if 'upload_files' in request.POST:
@@ -132,10 +142,12 @@ def upload_view(request):
       context_instance=RequestContext(request)
     )
 
-
+@transaction.atomic
+@login_required
 @require_POST
 def upload_file( request ):
     file = upload_receive( request )
+    print(request.POST.get('type'))
     instance = File( file = file, proposal_id=request.POST.get('proposal_id'), file_type=request.POST.get('type'), name=file.name.split('/')[-1])
     instance.save()
     convert_file(instance)
@@ -151,6 +163,7 @@ def upload_file( request ):
     return UploadResponse( request, file_dict )
 
 
+@login_required
 @require_POST
 def delete_file(request, id):
     success = True
@@ -163,6 +176,7 @@ def delete_file(request, id):
 
     return JFUResponse( request, success )
 
+@login_required
 def download_file(request, filename):
     path = settings.BASE_DIR + '/isasuk/media/'
     file = open(path + filename, 'rb')
@@ -170,6 +184,7 @@ def download_file(request, filename):
     response['Content-Disposition'] = 'attachment; filename="%s"' % filename
     return response
 
+@login_required
 def download_original(request, id):
     file_instance = File.objects.get(id=id)
     file = open(file_instance.file.path, 'rb')
@@ -178,6 +193,7 @@ def download_original(request, id):
     response['Content-Disposition'] = 'attachment; filename="%s"' % filename
     return response
 
+@login_required
 def download_pdf(request, id):
     file_instance = File.objects.get(id=id)
     name = getFilename(file_instance.file.path)
@@ -187,6 +203,7 @@ def download_pdf(request, id):
     response['Content-Disposition'] = 'attachment; filename="%s"' % filename
     return response
 
+@login_required
 def print_file(request, filename):
     return render_to_response(
       'upload/print.html',
@@ -194,6 +211,7 @@ def print_file(request, filename):
       context_instance=RequestContext(request)
     )
 
+@login_required
 def show_file(request, filename):
     path = settings.BASE_DIR + '/isasuk/media/'
     with open(path + filename, 'rb') as pdf:
@@ -202,8 +220,14 @@ def show_file(request, filename):
         return response
     pdf.closed
 
+@login_required
 def download_zip(request, proposal_id):
       proposal = Proposal.objects.get(id=proposal_id)
+      if not request.user.details.is_member and not request.user.details.role == 'admin':
+        meetings_with_material = MeetingsToMaterials.objects.filter(proposal=proposal).values_list('meeting')
+        invited = Invited.objects.filter(user=request.user, meeting__in=meetings_with_material)
+        if len(invited) == 0:
+          return HttpResponse(status=404)
       files = File.objects.filter(proposal_id=proposal_id)
       filenames = []
       for file in files:

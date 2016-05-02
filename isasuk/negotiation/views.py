@@ -4,15 +4,17 @@ from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 from django.core.urlresolvers import reverse
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
 
 from isasuk.members.models import Group
 from isasuk.upload.models import Proposal, File
 from .models import Assignement, Objection, Report, History
-from ..meeting.models import MeetingsToMaterials, Meeting
+from ..meeting.models import MeetingsToMaterials, Meeting, Invited
 from jfu.http import upload_receive, UploadResponse, JFUResponse
 
 from ..upload.forms import choices
-from ..common.helpers import handle_uploaded_file, convert_file, convert_to_pdf, getFilename, get_proposal_files, rename_and_save
+from ..common.helpers import convert_file, convert_to_pdf, getFilename, get_proposal_files, rename_and_save
 import os, sys, subprocess, time, json
 
 group_names = [
@@ -25,9 +27,11 @@ group_names = [
   ('pravna', 'Právna komisia'),
   ('internaty', 'Komisia pre internáty a ubytovanie'),
   ('mandatova', 'Mandátová komisia'),
-  ('studentska', 'Študenstká časť AS UK'),
+  ('studentska', 'Študentská časť AS UK'),
 ]
 
+@transaction.atomic
+@login_required
 def negotiation_view(request):
   if request.user.details.role == 'admin':
     if 'assign' in request.POST:
@@ -66,15 +70,21 @@ def negotiation_view(request):
     )
   elif request.user.details.role == 'member':
     groups = Group.objects.filter(member=request.user).values_list('group_name', flat=True)
-    meetings = Meeting.objects.filter(group__in=groups, closed=True)
+    if request.user.details.is_member:
+      groups = list(groups) + ['asuk']
+    meetings = Meeting.objects.filter(group__in=groups, closed=True).order_by('date').values_list()
+    invited_meetings = Invited.objects.filter(user=request.user, meeting__closed=True).order_by('meeting__date')
     return render_to_response(
       'negotiation/negotiation_member.html',
       {
         'meetings': meetings,
+        'invited': invited_meetings,
       },
       context_instance=RequestContext(request)
     )
 
+@transaction.atomic
+@login_required
 def negotiation_group_view(request, group):
   if request.user.details.role == 'member':
     leader = Group.objects.filter(member=request.user, is_chair=True)
@@ -97,7 +107,8 @@ def negotiation_group_view(request, group):
       context_instance=RequestContext(request)
     )
 
-
+@transaction.atomic
+@login_required
 def assign_view(request, id):
   if request.user.details.role != 'admin':
     return None
@@ -142,6 +153,8 @@ def assign_view(request, id):
       context_instance=RequestContext(request)
     )
 
+@transaction.atomic
+@login_required
 def report_view(request, id):
   if request.user.details.role != 'admin':
     return None
@@ -165,9 +178,15 @@ def report_view(request, id):
       context_instance=RequestContext(request)
     )
 
+@transaction.atomic
+@login_required
 def objections_view(request, meeting_id, file_id):
-    if request.user.details.role == 'member':
+    invited_meetings = Invited.objects.filter(user=request.user, meeting__id=meeting_id)
+    meeting = Meeting.objects.get(id=meeting_id)
+    groups = Group.objects.filter(member=request.user, group_name=meeting.group)
+    if request.user.details.role == 'member' and (len(groups) > 0 or len(invited_meetings) > 0):
       if 'add' in request.POST:
+        print(bytes(request.POST.get('original_text'),'UTF-8'))
         objection = Objection(
           user_id=request.user,
           file_id=file_id,
@@ -187,26 +206,35 @@ def objections_view(request, meeting_id, file_id):
       main_file = File.objects.get(id=file_id)
       history = History.objects.filter(meeting_id=meeting_id).order_by('-timestamp')
       objections = Objection.objects.filter(file_id=file_id).order_by('-importance', '-timestamp')
+      is_leader = False if meeting.group == 'asuk' else Group.objects.get(member=request.user, group_name=meeting.group).is_chair
+      path = 'isasuk/static/storage/docs/' + main_file.id.hex + "/" + ('.').join(main_file.name.split('.')[:-1]) + ".html"
+      with open(path, 'rb') as f:
+        read_data = f.read()
       d = {
           'path': main_file.id.hex + "/" + ('.').join(main_file.name.split('.')[:-1]) + ".html",
+          'data': read_data,
           'history': history,
           'request': request,
           'user': str(request.user.id),
           'meeting': meeting,
           'file_id': file_id,
           'objections': objections,
+          'is_leader': is_leader,
         }
-      print(d)
       return render_to_response(
         'negotiation/objections.html',
         d,
         context_instance=RequestContext(request)
       )
+    else:
+      return HttpResponse(status=404)
 
+@login_required
 def objections_redirect_view(request, group, proposal_id):
   main_file = File.objects.filter(proposal_id=proposal_id).get(file_type='proposal')
   return redirect('/negotiation/' + group + '/' + proposal_id + '/' + str(main_file.id))
 
+@login_required
 def archive_file(file_id, meeting_id):
   old_file = File.objects.get(id=file_id)
   file_type = old_file.file_type
@@ -221,8 +249,14 @@ def archive_file(file_id, meeting_id):
   archived_file.save()
   return file_type
 
+@transaction.atomic
+@login_required
 @require_POST
 def upload_file( request ):
+    meeting = Meeting.objects.get(id=request.POST.get('proposal_id'))
+    is_leader = len(Group.objects.filter(member=request.user, group_name=meeting.group, is_chair=True)) > 0
+    if not is_leader:
+      return HttpResponse(status=404)
     file = upload_receive( request )
     instance = File( file = file, proposal_id=request.POST.get('proposal_id'), file_type=request.POST.get('type'), name=file.name.split('/')[-1])
     instance.save()
@@ -238,6 +272,8 @@ def upload_file( request ):
 
     return UploadResponse( request, file_dict )
 
+@transaction.atomic
+@login_required
 @require_POST
 def delete_file(request, id):
     success = True

@@ -4,6 +4,11 @@ from django.core.urlresolvers import reverse
 from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.db.models import Count
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+
 from isasuk.accounts.models import Details
 from isasuk.upload.models import File, Proposal
 from isasuk.members.models import Group, AdhocGroup
@@ -37,16 +42,15 @@ group_display = {
   'mandatova': 'Mandátová komisia',
 }
 
+
 def send_verification_email(request, id, email):
     url = request.META['HTTP_ORIGIN'] + '/members/verify/' + str(id)
-    message = {
-          'from_email': 'registracia@sportrank.sk',
-          'from_name': 'IS AS UK',
-          'to': [{'email': email}],
-          'html': 'Vitajte v systéme IS AS UK<br> Pre nastavenie hesla kliknite na tento link: <a href="' + url + '">' + url + '</a>',
-      }
-    mandrill_client.messages.send(message=message)
+    send_mail('Registrácia v systéme IS AS UK', '',
+                   'isasuk@sportrank.sk', [email], fail_silently=False,
+                     html_message=render_to_string('accounts/registration_email.html', {'link': url}))
 
+@transaction.atomic
+@login_required
 def members_view(request):
     display= "none"
     members = User.objects.filter(details__is_active=True)
@@ -97,6 +101,8 @@ def members_view(request):
     )
 
 
+@transaction.atomic
+@login_required
 def groups_view(request, group_name=None):
     names = [i[0] for i in group_names]
     form = AddUserForm(group_name=group_name)
@@ -179,16 +185,15 @@ def password_view(request, id):
       re_password = request.POST.get('re_password')
       if password and password == re_password:
         user = User.objects.get(id=id)
-        print(user)
         user.set_password(password)
         print(user.password)
-        user.save()
         return redirect(reverse('login'))
     return render_to_response(
         'members/password_set.html',
         {},
         context_instance=RequestContext(request))
 
+@login_required
 def adhoc_view(request):
     if request.user.details.role == 'member':
         members = User.objects.all()
@@ -220,7 +225,8 @@ def add_user(data):
         is_student = check_boolean_field(data, 'is_student'),
         is_member = check_boolean_field(data, 'is_member'),
         can_submit = check_boolean_field(data, 'can_submit'),
-        is_chair = check_boolean_field(data, 'is_chair'), 
+        is_chair = check_boolean_field(data, 'is_chair'),
+        archive_access = check_boolean_field(data, 'archive_access'),
         is_active = True,
     )
     member.save()
@@ -236,6 +242,7 @@ def edit_user(request):
   details.is_member = check_boolean_field(data, 'is_member')
   details.can_submit = check_boolean_field(data, 'can_submit')
   details.is_chair = check_boolean_field(data, 'is_chair')
+  details.archive_access = check_boolean_field(data, 'archive_access')
   details.save()
 
 def check_boolean_field(data, field):
@@ -280,6 +287,8 @@ def add_leader_to_group(id, start, end, group):
 def remove_leader_from_group(id, group):
     Group.objects.filter(group_name=group).get(member=id).delete()
 
+@transaction.atomic
+@login_required
 def attendance_view(request):
   if 'select' in request.POST:
     choice = request.POST.get('choice')

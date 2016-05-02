@@ -1,0 +1,67 @@
+{% extends 'index.html' %}
+{% load staticfiles %}
+{% load bootstrap %}
+{% load formatresult %}
+{% load getgroupname %}
+
+
+{% block navigation %}
+    {% include 'navigation.html' %}
+{% endblock%}
+
+{% block content %}
+<style>
+  ul {list-style-type: none;}
+</style>
+<div class='row'>
+    <div class='col-md-12'>
+      <h1>Archív zasadnutí</h1>
+      <form method='POST' action=''>
+        {% csrf_token %}
+        <div class='col-md-4'>
+          {{ form.commission|bootstrap }}
+        </div>
+        <div class='col-md-4'>
+          {{ form.start|bootstrap }}
+          {{ form.end|bootstrap }}
+        </div>
+        <div class='col-md-12'>
+          <input type='submit' class="btn btn-success" name='filter' value='Filtrovať'/>
+        </div>
+      </form>
+      </div>
+</div>
+<div class='row'>
+    <div class='col-md-12'>
+    <hr>
+    {% for meeting in results %}
+      <div class='col-md-12' style='padding:5px'>
+        {% autoescape off %}
+          <div class='col-md-2'>{{ meeting.date }}</div><div class='col-md-3'>{{ meeting.title }} {{ meeting.group|getgroupname }}</div><div class='col-md-2'><a class='btn btn-success' href='/meeting/meeting/{{meeting.id.hex}}/'><i class="fa fa-search"></i></a></div>
+        {% endautoescape %}
+      </div>
+    {% empty %}
+      Pre komisiu neexistujú výsledky
+    {% endfor %}
+    </div>
+    <div class='col-md-12'>
+      {% if length > 0 %}
+      <hr>
+      <div class='col-md-12'>V archíve existuje {{ length }} ďalších výsledkov</div>
+      <form method='POST' action=''>
+        {% csrf_token %}
+      <div class='col-md-12' style='padding-top:10px'>
+          <input type='submit' class="btn btn-success" name='all' value='Zobraziť všetky'/>
+        </div>
+      </form>
+      {% endif %}
+    </div>
+  <script src="{% static "js/meeting_archive.js" %}"></script>
+</div>
+{% endblock %}
+
+
+{% block footer %}
+    {% include 'footer.html' %}
+{% endblock %}
+

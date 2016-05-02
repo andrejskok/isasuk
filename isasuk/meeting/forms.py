@@ -1,4 +1,6 @@
 from django.utils.translation import ugettext as _
+from django.contrib.auth.models import User
+
 from django import forms
 from isasuk.members.models import Group
 
@@ -12,7 +14,7 @@ group_display = {
   'pravna': 'Právna komisia',
   'internaty': 'Komisia pre internáty a ubytovanie',
   'mandatova': 'Mandátová komisia',
-  'studentska': 'Študenstká časť AS UK',
+  'studentska': 'Študentská časť AS UK',
 }
 
 group_names = [
@@ -25,7 +27,7 @@ group_names = [
   ('pravna', 'Právna komisia'),
   ('internaty', 'Komisia pre internáty a ubytovanie'),
   ('mandatova', 'Mandátová komisia'),
-  ('studentska', 'Študenstká časť AS UK'),
+  ('studentska', 'Študentská časť AS UK'),
 ]
 
 
@@ -43,7 +45,7 @@ def get_user_choices(user):
     return choices
 
 class MeetingForm(forms.Form):
-    title =  forms.CharField(label=_("Názov"), max_length=80)
+    title =  forms.CharField(label=_("Názov"), max_length=256)
     date = forms.DateTimeField(
       label=_("Dátum"),
       widget=forms.DateTimeInput(
@@ -51,6 +53,7 @@ class MeetingForm(forms.Form):
         format = '%d/%m/%Y %H:%M'),
       input_formats=('%d/%m/%Y %H:%M',))
     choices = forms.ChoiceField()
+    invited = forms.MultipleChoiceField(label=_("Prizvaní hostia"), widget=forms.CheckboxSelectMultiple, choices=get_all_users())
 
     def __init__(self, *args, **kwargs):
       self.request = kwargs.pop('request', None)

@@ -6,49 +6,60 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.core.urlresolvers import reverse
 from django.core.files import File as DjangoFile
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
 
 from shutil import copyfile
 from isasuk.members.models import Group
 from .forms import MeetingForm
-from .models import Meeting, MeetingsToMaterials
+from .models import Meeting, MeetingsToMaterials, Invited
 from ..upload.models import Proposal, File
 from ..negotiation.models import Assignement
 from ..members.models import Group, Attendance
-from ..common.helpers import handle_uploaded_file, convert_file, convert_to_pdf, getFilename, get_proposal_files
+from ..common.helpers import convert_file, convert_to_pdf, getFilename, get_proposal_files
 
 from jfu.http import upload_receive, UploadResponse, JFUResponse
 import datetime, json, os, webodt, time
 
 
+@transaction.atomic
+@login_required
 def meeting_view(request, id):
    meeting = Meeting.objects.get(id=id)
    meeting_materials = []
    assigned_ids = MeetingsToMaterials.objects.filter(meeting=id).exclude(proposal__isnull=True).order_by('order')
-   for assignement in assigned_ids:
-     proposal = Proposal.objects.get(id=assignement.proposal_id)
-     meeting_materials.append({
-       'proposal': proposal,
-       'files': get_proposal_files(proposal.id.hex),
-     })
-   return render_to_response(
-     'meeting/meeting.html',
-     {
-       'meeting': meeting,
-       'id': id,
-       'meeting_materials': meeting_materials,
-     },
-     context_instance=RequestContext(request)
-     )
+   invited = Invited.objects.filter(user=request.user, meeting=meeting)
+   if request.user.details.is_member or len(invited) > 0:
+     for assignement in assigned_ids:
+       proposal = Proposal.objects.get(id=assignement.proposal_id)
+       meeting_materials.append({
+         'proposal': proposal,
+         'files': get_proposal_files(proposal.id.hex),
+       })
+     return render_to_response(
+       'meeting/meeting.html',
+       {
+         'meeting': meeting,
+         'id': id,
+         'meeting_materials': meeting_materials,
+       },
+       context_instance=RequestContext(request)
+       )
+   else:
+      return HttpResponse(status=404)
 
+@transaction.atomic
+@login_required
 def add_meeting_view(request):
   meetingform = MeetingForm(request=request)
   group = Group.objects.filter(member=request.user, is_chair=True)
-  if request.user.is_superuser or len(group) > 0:
+  if request.user.details.role == 'admin' or len(group) > 0:
     successfully_added = False
     if 'add_meeting' in request.POST:
       meetingform = MeetingForm(request.POST, request=request)
       if meetingform.is_valid():
         meeting = add_meeting(request.user.id, request.POST.get('title'), request.POST.get('date'), request.POST.get('choices'))
+        add_invited(meetingform.cleaned_data['invited'], meeting)
         proposal_ids = Assignement.objects.filter(group_name=meeting.group)
         ids = [assignement.proposal_id for assignement in proposal_ids]
         proposals = Proposal.objects.filter(id__in = ids)
@@ -63,6 +74,8 @@ def add_meeting_view(request):
   else:
     return redirect('/meeting/meetings/')
 
+@transaction.atomic
+@login_required
 def my_meetings_view(request):
   success_delete = None
   meetings_leader = []
@@ -94,10 +107,15 @@ def my_meetings_view(request):
     context_instance=RequestContext(request)
   )
 
+@transaction.atomic
+@login_required
 def edit_meeting_view(request, id):
   if 'edit' in request.POST:
     return None
   meeting = Meeting.objects.get(id=id)
+  group_leader = Group.objects.filter(member=request.user, group_name=meeting.group)
+  if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+    return HttpResponse(status=404)
   proposal_ids = Assignement.objects.filter(group_name=meeting.group)
   assigned_proposal_ids = MeetingsToMaterials.objects.filter(meeting__id=id).order_by('order')
   assigned_ids = [assignement.proposal.id.hex for assignement in assigned_proposal_ids if assignement.proposal]
@@ -116,11 +134,17 @@ def edit_meeting_view(request, id):
     context_instance=RequestContext(request)
   )
 
+@transaction.atomic
+@login_required
 def save_meeting_program(request):
   data = request.POST
   ids = json.loads(data.get('ids'))
   names = json.loads(data.get('names'))
   meeting_id = request.POST.get('meeting_id')
+  meeting = Meeting.objects.get(id=meeting_id)
+  group_leader = Group.objects.filter(member=request.user, group_name=meeting.group)
+  if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+    return HttpResponse(status=404)
   MeetingsToMaterials.objects.filter(meeting__id=meeting_id).delete()
   index = 0
   for id in ids:
@@ -145,7 +169,6 @@ def save_meeting_program(request):
   }
   document = template.render(Context(context))
   file = move_program(document, meeting_id)
-  meeting = Meeting.objects.get(id=meeting_id)
   meeting.program = file
   meeting.save()
   return HttpResponse(json.dumps({'success': True}))
@@ -161,8 +184,13 @@ def move_program(document, meeting_id):
   convert_file(instance)
   return instance
 
+@transaction.atomic
+@login_required
 def upload_invitation_view(request, id):
   meeting = Meeting.objects.get(id=id)
+  group_leader = Group.objects.filter(member=request.user, group_name=meeting.group)
+  if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+    return HttpResponse(status=404)
   invitation = meeting.invitation
   error = False
   if "send" in request.POST:
@@ -182,9 +210,13 @@ def upload_invitation_view(request, id):
     context_instance=RequestContext(request)
   )
 
-
+@transaction.atomic
+@login_required
 def close_meeting_view(request, id):
   meeting = Meeting.objects.get(id=id)
+  group_leader = Group.objects.filter(member=request.user, group_name=meeting.group)
+  if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+    return HttpResponse(status=404)
   proposals = MeetingsToMaterials.objects.filter(meeting__id=id).exclude(proposal__isnull=True)
   attendance = Attendance.objects.filter(meeting__id=id).order_by('user__last_name')
   no_conclusion = False
@@ -201,7 +233,7 @@ def close_meeting_view(request, id):
         else:
           material.proposal.state = 'approved_comission'
         material.proposal.save()
-      Assignement.objects.get(proposal_id=material.proposal.id.hex, group_name=meeting.group).delete()
+        Assignement.objects.get(proposal_id=material.proposal.id.hex, group_name=meeting.group).delete()
       return redirect(reverse('my_meetings'))
     else:
       no_conclusion = True
@@ -221,9 +253,14 @@ def close_meeting_view(request, id):
     context_instance=RequestContext(request)
   )
 
-
+@transaction.atomic
+@login_required
 def save_attendance(data, id):
   attendance = Attendance.objects.filter(meeting__id=id)
+  meeting = Meeting.objects.get(id=id)
+  group_leader = Group.objects.filter(member=request.user, group_name=meeting.group)
+  if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+    return HttpResponse(status=404)
   for atendee in attendance:
     if data.get(atendee.id.hex):
       atendee.state = data.get(atendee.id.hex)
@@ -241,9 +278,24 @@ def add_meeting(creator, title, date, group):
     shouldAttend.save()
   return meeting
 
+def add_invited(invited, meeting):
+  print(invited)
+  for user in invited:
+    invited_user = Invited(
+      meeting = meeting,
+      user = User.objects.get(id=user),
+    )
+    invited_user.save()
+
+@transaction.atomic
+@login_required
 @require_POST
 def upload_file( request ):
     meeting_id = request.POST.get('proposal_id') # bad naming but it is obvious
+    meeting = Meeting.objects.get(id=meeting_id) 
+    group_leader = Group.objects.filter(member=request.user, group_name=meeting.group)
+    if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+      return HttpResponse(status=404)
     file = upload_receive( request )
     instance = File( file = file, proposal_id=meeting_id, file_type='invitation', name=file.name.split('/')[-1])
     instance.save()
@@ -263,9 +315,15 @@ def upload_file( request ):
 
     return UploadResponse( request, file_dict )
 
+@transaction.atomic
+@login_required
 @require_POST
 def upload_conclusion_file( request ):
     meeting_id = request.POST.get('proposal_id') # bad naming but it is obvious
+    meeting = Meeting.objects.get(id=meeting_id) 
+    group_leader = Group.objects.filter(member=request.user, group_name=meeting.group)
+    if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+      return HttpResponse(status=404)
     file = upload_receive( request )
     instance = File( file = file, proposal_id=meeting_id, file_type='comission_conclusion', name=file.name.split('/')[-1])
     instance.save()
@@ -285,9 +343,15 @@ def upload_conclusion_file( request ):
 
     return UploadResponse( request, file_dict )
 
+@transaction.atomic
+@login_required
 @require_POST
 def upload_conclusion_to_material( request ):
     meeting_id = request.POST.get('proposal_id') # bad naming but it is obvious
+    meeting = Meeting.objects.get(id=meeting_id) 
+    group_leader = Group.objects.filter(member=request.user, group_name=meeting.group)
+    if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+      return HttpResponse(status=404)
     file = upload_receive( request )
     instance = File( file = file, proposal_id=meeting_id, file_type='material_conclusion', name=file.name.split('/')[-1])
     instance.save()
@@ -306,35 +370,48 @@ def upload_conclusion_to_material( request ):
 
     return UploadResponse( request, file_dict )
 
+@transaction.atomic
+@login_required
 @require_POST
 def delete_file(request, id):
     success = True
     try:
         instance = Meeting.objects.get( id = id )
+        group_leader = Group.objects.filter(member=request.user, group_name=instance.group)
+        if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+          return HttpResponse(status=404)
         instance.invitation.delete()
         instance.save()
     except UpFile.DoesNotExist:
         success = False
     return JFUResponse( request, success )
 
+@transaction.atomic
+@login_required
 @require_POST
 def delete_conclusion_file(request, id):
     success = True
     try:
         instance = Meeting.objects.get( id = id )
+        group_leader = Group.objects.filter(member=request.user, group_name=instance.group)
+        if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+          return HttpResponse(status=404)
         instance.conclusion.delete()
         instance.save()
     except UpFile.DoesNotExist:
         success = False
     return JFUResponse( request, success )
 
+@transaction.atomic
+@login_required
 @require_POST
 def delete_conclusion_material(request, id):
     success = True
     try:
         instance = MeetingsToMaterials.objects.get( id = id )
-        print(instance)
-        print(instance.conclusion)
+        group_leader = Group.objects.filter(member=request.user, group_name=instance.group)
+        if not request.user.details.role == 'admin' and not len(group_leader) > 0:
+          return HttpResponse(status=404)
         instance.conclusion.delete()
         instance.save()
     except UpFile.DoesNotExist:

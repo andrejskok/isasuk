@@ -14,6 +14,7 @@ urlpatterns = [
     url(r'^isasuk/', include('isasuk.viewer.urls')),
     url(r'^members/', include('isasuk.members.urls')),
     url(r'^archive/', include('isasuk.archive.urls')),
+    url(r'^api/', include('isasuk.api.urls')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^$', include('isasuk.home.urls')),
     url(r'^.*$', include('isasuk.home.urls')),

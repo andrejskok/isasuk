@@ -2,7 +2,7 @@ from django.utils.translation import ugettext as _
 from django import forms
 
 class AddEventForm(forms.Form):
-    title =  forms.CharField(label=_("Názov"), max_length=80)
+    title =  forms.CharField(label=_("Názov"), max_length=256)
     date = forms.DateTimeField(
       label=_("Dátum"),
       widget=forms.DateTimeInput(

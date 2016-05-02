@@ -26,14 +26,20 @@
           Zápisnica
      </a><br>
      {% endif %}
+      {% if meeting.program %}
      <a target='_blank' href='/viewer/file/{{ meeting.program.id.hex }}'>
      <i class="fa fa-search"></i>
          Program
      </a><br>
-     <a target='_blank' href='/viewer/file/{{ meeting.invitation.id.hex }}'>
+     {% endif %}
+      {% if meeting.invitation %}
+      <a target='_blank' href='/viewer/file/{{ meeting.invitation.id.hex }}'>
      <i class="fa fa-search"></i>
          Pozvánka
      </a>
+     {% endif %}
+
+
      </div>
 </div>
 <hr>
@@ -81,7 +87,7 @@
     </li>
     <hr>
     {% empty %}
-      K tomuto zasadnutiu ešte niesú žiadne návrhy
+      K tomuto zasadnutiu ešte niesú priradené žiadne materiály
     {% endfor %}
   </ul>
 </div>

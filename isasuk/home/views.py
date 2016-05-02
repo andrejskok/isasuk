@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 
 from isasuk.upload.models import File, Proposal
-from isasuk.meeting.models import Meeting, MeetingsToMaterials
+from isasuk.meeting.models import Meeting, MeetingsToMaterials, Invited
 from isasuk.negotiation.models import Assignement
 
 from ..common.helpers import get_proposal_files
@@ -12,6 +12,7 @@ import webodt, os
 import psutil
 from datetime import datetime
 
+@login_required
 def home_view_admin(request, meeting_id):
     meetings = Meeting.objects.filter(date__gt=datetime.now(), closed=False, state='created').order_by('date')[:5]
     last_meetings = Meeting.objects.filter(date__lt=datetime.now(), closed=True, state='created').order_by('date')[:5]
@@ -49,9 +50,15 @@ def home_view_admin(request, meeting_id):
       context_instance=RequestContext(request),
     )
 
+@login_required
 def home_view_member(request, meeting_id):
-    meetings = Meeting.objects.filter(date__gt=datetime.now(), closed=False, state='created').order_by('date')[:5]
-    last_meetings = Meeting.objects.filter(date__lt=datetime.now(), closed=True, state='created').order_by('date')[:5]
+    if request.user.details.is_member:
+        meetings = Meeting.objects.filter(date__gt=datetime.now(), closed=False, state='created').order_by('date')[:5]
+        last_meetings = Meeting.objects.filter(date__lt=datetime.now(), closed=True, state='created').order_by('date')[:5]
+    else:
+        invited_to = Invited.objects.filter(user=request.user).values_list('meeting__id')
+        meetings = Meeting.objects.filter(id__in=invited_to, date__gt=datetime.now(), closed=False, state='created').order_by('date')[:5]
+        last_meetings = Meeting.objects.filter(id__in=invited_to, date__lt=datetime.now(), closed=True, state='created').order_by('date')[:5]
     if not meeting_id and len(meetings) > 0:
       url = '/home/' + meetings[0].id.hex
       return redirect(url)

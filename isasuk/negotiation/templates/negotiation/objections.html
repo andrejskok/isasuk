@@ -18,7 +18,9 @@
         <h3>Pripomienky k dokumentu</h3>
         <p>Text ktorý chcete pripomienkovať označte myšou.</p>
           <div style="height:700px;min-width:700px; postion:relative" id='objections_target' class='col-md-12'>
-            {% include path %}
+          {% autoescape off %}
+            {{ data }}
+            {% endautoescape %}
           </div>
       </div>
       <div class="row">
@@ -80,16 +82,20 @@
     </div>
     <div class='col-md-4'>
       <h3>Informácie o dokumente</h3>
+       {% if is_leader %}
        <div style='padding-left:15px;'>
        {% jfu 'negotiation/revision_form.html' 'negotiation_upload' meeting.id.hex 'fileupload2' 'Revízia' %}
        </div>
        <button class='btn btn-success' id='save_revision'>Uložiť</button>
+       {% endif %}
        {% if history %}
         <h3>Prehľad histórie</h3>
         {% for file in history %}
           {{ file.timestamp }}<br>
           <a href='/archive/{{ file.id.hex }}'>{{ file.name }}</a><br>
         {% endfor %}
+       {% else %}
+        K dokumentu neexistuje žiadna história
        {% endif %}
     </div>
   </div>

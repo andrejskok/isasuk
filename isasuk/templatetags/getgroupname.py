@@ -12,7 +12,7 @@ group_display = {
   'pravna': 'Právna komisia',
   'internaty': 'Komisia pre internáty a ubytovanie',
   'mandatova': 'Mandátová komisia',
-  'studentska': 'Študenstká časť AS UK',
+  'studentska': 'Študentská časť AS UK',
 }
 
 @register.filter

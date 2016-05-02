@@ -1,7 +1,8 @@
 from django.db import models
+from ..upload.models import File
 import uuid
 
-class Meeting(models.Model):
+class ArchiveDocs(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    file_id = models.CharField(max_length=80)
+    file = models.ForeignKey(File)
     text = models.TextField()

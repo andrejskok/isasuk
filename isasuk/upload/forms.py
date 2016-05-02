@@ -1,14 +1,21 @@
 from django.utils.translation import ugettext as _
 from django import forms
 
-choices = [
-  ('','---'),
-  ('rent', 'Prenájmy'),
-  ('budget', 'Rozpočet'),
-  ('agreement', 'Žiadosti o udelenie súhlasu'),
-  ('obligation', 'Vecné bremená'),
-  ('directive', 'Vnútorná smernica'),
+form_choices = [
+  ('rent', 'Žiadosť o udelenie súhlasu s nájmom nehnuteľného majetku'),
+  ('prposalRector', 'Návrh rektora na úkony podľa § 41 zákona o VŠ'),
+  ('regulationUK', 'Vnútorný predpis UK'),
+  ('regulationFaculty', 'Vnútorný predpis fakulty'),
+  ('personal', 'Personálny návrh rektora'),
+  ('donation', 'Metodika rozpisu dotácií'),
+  ('intention', 'Dlhodobý zámer UK'),
+  ('report', 'Výročná správa'),
+  ('ukscience', 'UK Veda, s.r.o.'),
+  ('pricelist', 'Cenník ubytovania'),
+  ('other', 'Iné'),
 ]
+
+choices =   [('','---')] + form_choices
 
 patterns = [
   ('','---'),
@@ -16,7 +23,7 @@ patterns = [
 ]
 
 class UploadForm(forms.Form):
-    title = forms.CharField(label=_("Názov materiálu"), max_length=80, required=False)
+    title = forms.CharField(label=_("Názov materiálu"), max_length=256, required=False)
     # main_document = forms.FileField(label=_("Návrh uznesenia"), required=False)
     # own_material = forms.FileField(label=_("Vlastný materiál (vnútorný predpis, koncepcia, správa a pod.)"), required=False)
     # cause = forms.FileField(label=_("Dôvodová správa"), widget=forms.FileInput(), required=False)
